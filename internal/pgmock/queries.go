@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -31,16 +32,71 @@ func FetchAllTables(conn *pgx.Conn) ([]Table, error) {
 	}
 	defer rows.Close()
 
-	// scan results and fetch table columns
-	var tables []Table
+	// scan tables results
+	var tt []Table
 	for rows.Next() {
 		var t Table
 		if err = rows.Scan(&t.ID, &t.Namespace, &t.Name); err != nil {
 			return nil, fmt.Errorf("failed to scan results: %w", err)
 		}
 
+		tt = append(tt, t)
+	}
+
+	// fetch columns for tables
+	var tables []Table
+	for _, aTable := range tt {
+		t := aTable
+		cols, err := fetchColumns(conn, aTable.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch columns: %w", err)
+		}
+
+		t.Columns = cols
 		tables = append(tables, t)
 	}
 
 	return tables, nil
+}
+
+// fetchColumns grabs all 'relevant' columns of a specified table
+// relevant is defined as non-generated, non-always identity columns
+func fetchColumns(conn *pgx.Conn, tableID pgtype.OID) ([]Column, error) {
+	// query table columns
+	rows, err := conn.Query(
+		context.Background(),
+		`SELECT
+			att.attnum, att.attname, NOT att.attnotnull, att.atthasdef, att.attidentity='d',
+			COALESCE(con.contype='p', FALSE), COALESCE(con.confrelid, 0), con.confkey
+		FROM pg_attribute att
+		LEFT OUTER JOIN pg_constraint con
+			ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
+		WHERE att.attrelid=$1
+			AND att.attnum > 0
+			AND NOT att.attisdropped
+			AND att.attidentity!='a'
+			AND att.attgenerated=''
+		ORDER BY att.attnum ASC
+	`, tableID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// scan column results
+	var cols []Column
+	for rows.Next() {
+		var c Column
+		if err = rows.Scan(
+			&c.Order, &c.Name, &c.IsNullable, &c.HasDefaultValue,
+			&c.IsDefaultIdentity, &c.IsPrimaryKey, &c.FKTableID,
+			&c.FKColumns,
+		); err != nil {
+			return nil, err
+		}
+
+		cols = append(cols, c)
+	}
+
+	return cols, nil
 }

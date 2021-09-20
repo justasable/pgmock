@@ -19,5 +19,5 @@ type Column struct {
 	IsDefaultIdentity bool
 	IsPrimaryKey      bool
 	FKTableID         pgtype.OID
-	FKColumns         pgtype.Int4Array
+	FKColumns         []int
 }
