@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/justasable/pgmock/internal/connect"
 	"github.com/justasable/pgmock/internal/pgmock"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,12 +14,13 @@ const TEST_WIPE_TABLE = "testwipetable"
 
 func TestDeleteData(t *testing.T) {
 	// connect to database
-	conn := MustConnect(t)
+	conn, err := connect.Connect()
+	assert.NoError(t, err)
 	defer conn.Close(context.Background())
 
 	// check that the test table we are going to use does not exist
 	var exists bool
-	err := conn.QueryRow(context.Background(), `
+	err = conn.QueryRow(context.Background(), `
 	SELECT EXISTS (
 		SELECT 1
 		FROM pg_tables

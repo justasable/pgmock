@@ -1,17 +1,21 @@
 package pgmock_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/jackc/pgtype"
+	"github.com/justasable/pgmock/internal/connect"
 	"github.com/justasable/pgmock/internal/pgmock"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFetchAllTables(t *testing.T) {
 	// fetch tables
-	conn := MustConnect(t)
+	conn, err := connect.Connect()
+	assert.NoError(t, err)
+	defer conn.Close(context.Background())
 	tt, err := pgmock.FetchAllTables(conn)
 	assert.NoError(t, err)
 
