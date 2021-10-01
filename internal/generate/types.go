@@ -1,4 +1,4 @@
-package pgmock
+package generate
 
 import (
 	"github.com/jackc/pgtype"

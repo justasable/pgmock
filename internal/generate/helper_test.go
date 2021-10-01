@@ -1,4 +1,4 @@
-package pgmock_test
+package generate_test
 
 import (
 	"fmt"
@@ -15,14 +15,11 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	// setup test schema
-	scriptPath := os.Getenv("PGMOCK_SETUP_SCRIPT_PATH")
-	if scriptPath != "" {
-		err := connect.RunScript(scriptPath)
-		if err != nil {
-			fmt.Printf("could not run setup script: %+v", err)
-			os.Exit(1)
-		}
+	// setup test schema{
+	err := connect.RunScript("test_setup.sql")
+	if err != nil {
+		fmt.Printf("could not run setup script: %+v", err)
+		os.Exit(1)
 	}
 
 	// run tests

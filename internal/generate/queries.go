@@ -1,4 +1,4 @@
-package pgmock
+package generate
 
 import (
 	"context"
