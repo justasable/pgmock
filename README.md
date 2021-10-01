@@ -10,38 +10,16 @@ Given a schema, generate mock data in a way that
 
 Note: currently in development with no guarantees for compatabilty between commits
 
-### Supported Data Type
+## Connection
 
-| Data Type | Behavior |
-| --------- | -------- |
-|           |          |
+Database connection params must be specified explicitly for safety
 
-### Supported Constraints
-
-| Constraints                 | Behavior                             |
-| --------------------------- | ------------------------------------ |
-| nullable                    | null, default (see PGMock Defaults)  |
-| default (user overwritable) | pgmock default (see PGMock Defaults) |
-| default (db generated)      | ignore                               |
-| generated                   | ignore                               |
-| check                       | ignore                               |
-
-### PGMock Defaults
-
-| Default Type | Value |
-| ------------ | ----- |
-|              |       |
-
-## Roadmap
-
-**Numeric**: integer, smallint, bigint, decimal, numeric, serial, smallserial, bigserial
-
-**Text**: text, char(n), varchar(n)
-
-**Other**: primary key, foreign key
+- `PGMOCK_HOST`
+- `PGMOCK_PORT`
+- `PGMOCK_DATABASE`
+- `PGMOCK_USER`
+- `PGMOCK_PASSWORD` (optional)
 
 ## Testing
 
-- requires `psql`
-- uses `pgmock_test_db` for testing
-- uses [pgx](https://github.com/jackc/pgx) defaults to connect to database (except the above database)
+Requires `psql`, `dropdb` and `createdb`
