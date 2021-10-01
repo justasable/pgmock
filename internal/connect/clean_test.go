@@ -44,3 +44,11 @@ func TestDropAndRecreateDB(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, exists)
 }
+
+func TestRunScript(t *testing.T) {
+	err := connect.RunScript("test_script.sql")
+	assert.NoError(t, err)
+
+	err = connect.RunScript("non_existent_script.sql")
+	assert.Error(t, err)
+}

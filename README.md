@@ -19,7 +19,6 @@ Database connection params must be specified explicitly for safety
 - `PGMOCK_DATABASE`
 - `PGMOCK_USER`
 - `PGMOCK_PASSWORD` (optional)
-- `PGMOCK_SETUP_SCRIPT_PATH` (optional)
 
 ## Testing
 
