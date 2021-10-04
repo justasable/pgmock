@@ -45,6 +45,8 @@ func RunScript(path string) error {
 		"-d", cfg.Database,
 		"-U", cfg.User,
 		"-f", path,
+		"--no-psqlrc",
+		"-v", "ON_ERROR_STOP=1",
 	}
 	if cfg.Password != "" {
 		cmdOpts = append(cmdOpts, "-W", cfg.Password)
