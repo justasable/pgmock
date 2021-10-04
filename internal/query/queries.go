@@ -1,4 +1,4 @@
-package pgmock
+package query
 
 import (
 	"context"
@@ -8,14 +8,33 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-// fetchAllTables retrieves tables from all available non-system namespaces
+// tables retrieves tables from all available non-system namespaces
 // filters with following rules:
 // 	- table only (i.e. no views)
 // 	- excludes any other session's temporary tables
 // 	- excludes default system namespaces
-// ordered by table name in alphabetical ascending
-func FetchAllTables(conn *pgx.Conn) ([]Table, error) {
-	// query tables
+func Tables(conn *pgx.Conn) ([]Table, error) {
+	tt, err := tables(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret []Table
+	for _, t := range tt {
+		cc, err := columns(conn, t.ID)
+		if err != nil {
+			return nil, err
+		}
+		aTable := t
+		aTable.Columns = cc
+		ret = append(ret, aTable)
+	}
+
+	return ret, nil
+}
+
+func tables(conn *pgx.Conn) ([]Table, error) {
+	// db query
 	rows, err := conn.Query(
 		context.Background(),
 		`SELECT pgc.oid, nsp.nspname, pgc.relname
@@ -24,9 +43,7 @@ func FetchAllTables(conn *pgx.Conn) ([]Table, error) {
 		WHERE 
 			pgc.relkind = ANY (ARRAY['r'::"char", 'p'::"char"])
 			AND NOT pg_is_other_temp_schema(nsp.oid)
-			AND NOT nsp.nspname = ANY(ARRAY['pg_catalog', 'pg_toast', 'information_schema'])
-		ORDER BY pgc.relname ASC`,
-	)
+			AND NOT nsp.nspname = ANY(ARRAY['pg_catalog', 'pg_toast', 'information_schema'])`)
 	if err != nil {
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
@@ -39,44 +56,25 @@ func FetchAllTables(conn *pgx.Conn) ([]Table, error) {
 		if err = rows.Scan(&t.ID, &t.Namespace, &t.Name); err != nil {
 			return nil, fmt.Errorf("failed to scan results: %w", err)
 		}
-
 		tt = append(tt, t)
 	}
 
-	// fetch columns for tables
-	var tables []Table
-	for _, aTable := range tt {
-		t := aTable
-		cols, err := fetchColumns(conn, aTable.ID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to fetch columns: %w", err)
-		}
-
-		t.Columns = cols
-		tables = append(tables, t)
-	}
-
-	return tables, nil
+	return tt, nil
 }
 
-// fetchColumns grabs all 'relevant' columns of a specified table
-// relevant is defined as non-generated, non-always identity columns
-func fetchColumns(conn *pgx.Conn, tableID pgtype.OID) ([]Column, error) {
-	// query table columns
+func columns(conn *pgx.Conn, tableID pgtype.OID) ([]Column, error) {
+	// db query
 	rows, err := conn.Query(
 		context.Background(),
 		`SELECT
-			att.attnum, att.attname, NOT att.attnotnull, att.atthasdef, att.attidentity='d',
-			COALESCE(con.contype='p', FALSE), COALESCE(con.confrelid, 0), con.confkey
+			att.attnum, att.attname, att.attnotnull, att.atthasdef, att.attidentity,
+			att.attgenerated, COALESCE(con.contype, ''), COALESCE(con.confrelid, 0), con.confkey
 		FROM pg_attribute att
 		LEFT OUTER JOIN pg_constraint con
 			ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
 		WHERE att.attrelid=$1
 			AND att.attnum > 0
 			AND NOT att.attisdropped
-			AND att.attidentity!='a'
-			AND att.attgenerated=''
-		ORDER BY att.attnum ASC
 	`, tableID)
 	if err != nil {
 		return nil, err
@@ -88,9 +86,8 @@ func fetchColumns(conn *pgx.Conn, tableID pgtype.OID) ([]Column, error) {
 	for rows.Next() {
 		var c Column
 		if err = rows.Scan(
-			&c.Order, &c.Name, &c.IsNullable, &c.HasDefaultValue,
-			&c.IsDefaultIdentity, &c.IsPrimaryKey, &c.FKTableID,
-			&c.FKColumns,
+			&c.Order, &c.Name, &c.IsNotNull, &c.HasDefault, &c.Identity,
+			&c.Generated, &c.Constraint, &c.FKTableID, &c.FKColumns,
 		); err != nil {
 			return nil, err
 		}
