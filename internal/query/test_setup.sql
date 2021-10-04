@@ -10,10 +10,10 @@ CREATE TABLE public.Types (
 CREATE TABLE public.Constraints (
     con_pk_one integer,
     con_pk_two integer,
-    con_nullable integer,
-    con_not_nullable integer NOT NULL,
-    con_default_null integer DEFAULT 4,
-    con_default_not_null integer DEFAULT 5 NOT NULL,
+    con_null integer,
+    con_not_null integer NOT NULL,
+    con_default integer DEFAULT 4,
+    con_no_default integer,
     con_generated integer GENERATED ALWAYS AS (3) STORED,
     PRIMARY KEY (con_pk_one, con_pk_two)
 );
