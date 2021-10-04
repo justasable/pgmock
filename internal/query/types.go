@@ -1,4 +1,4 @@
-package generate
+package query
 
 import (
 	"github.com/jackc/pgtype"

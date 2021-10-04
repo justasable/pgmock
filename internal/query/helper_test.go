@@ -1,4 +1,4 @@
-package generate_test
+package query_test
 
 import (
 	"fmt"

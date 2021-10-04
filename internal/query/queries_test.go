@@ -1,4 +1,4 @@
-package generate_test
+package query_test
 
 import (
 	"context"
@@ -7,16 +7,16 @@ import (
 
 	"github.com/jackc/pgtype"
 	"github.com/justasable/pgmock/internal/connect"
-	"github.com/justasable/pgmock/internal/generate"
+	"github.com/justasable/pgmock/internal/query"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFetchAllTables(t *testing.T) {
+func TestTables(t *testing.T) {
 	// fetch tables
 	conn, err := connect.Connect()
 	assert.NoError(t, err)
 	defer conn.Close(context.Background())
-	tt, err := generate.FetchAllTables(conn)
+	tt, err := query.Tables(conn)
 	assert.NoError(t, err)
 
 	// check number of tables returned
@@ -37,16 +37,16 @@ func TestFetchAllTables(t *testing.T) {
 	}
 
 	// compare fetched tables
-	expected := []generate.Table{
-		{ID: tablePublicAccount, Namespace: "public", Name: "account", Columns: []generate.Column{
+	expected := []query.Table{
+		{ID: tablePublicAccount, Namespace: "public", Name: "account", Columns: []query.Column{
 			{Order: 2, Name: "is_not_nullable"},
 			{Order: 3, Name: "is_nullable", IsNullable: true},
 		}},
-		{ID: tablePublicPet, Namespace: "public", Name: "pet", Columns: []generate.Column{
+		{ID: tablePublicPet, Namespace: "public", Name: "pet", Columns: []query.Column{
 			{Order: 1, Name: "fname", IsPrimaryKey: true},
 			{Order: 2, Name: "lname", IsPrimaryKey: true},
 		}},
-		{ID: tableTestAccount, Namespace: "test", Name: "account", Columns: []generate.Column{
+		{ID: tableTestAccount, Namespace: "test", Name: "account", Columns: []query.Column{
 			{Order: 1, Name: "id_default", IsDefaultIdentity: true, IsPrimaryKey: true},
 			{Order: 2, Name: "text_default", IsNullable: true, HasDefaultValue: true},
 			{Order: 3, Name: "fk_single", IsNullable: true, FKTableID: tablePublicAccount, FKColumns: []int{1}},

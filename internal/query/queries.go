@@ -1,4 +1,4 @@
-package generate
+package query
 
 import (
 	"context"
@@ -8,13 +8,13 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-// fetchAllTables retrieves tables from all available non-system namespaces
+// Tables retrieves tables from all available non-system namespaces
 // filters with following rules:
 // 	- table only (i.e. no views)
 // 	- excludes any other session's temporary tables
 // 	- excludes default system namespaces
 // ordered by table name in alphabetical ascending
-func FetchAllTables(conn *pgx.Conn) ([]Table, error) {
+func Tables(conn *pgx.Conn) ([]Table, error) {
 	// query tables
 	rows, err := conn.Query(
 		context.Background(),
@@ -47,7 +47,7 @@ func FetchAllTables(conn *pgx.Conn) ([]Table, error) {
 	var tables []Table
 	for _, aTable := range tt {
 		t := aTable
-		cols, err := fetchColumns(conn, aTable.ID)
+		cols, err := Columns(conn, aTable.ID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch columns: %w", err)
 		}
@@ -59,9 +59,9 @@ func FetchAllTables(conn *pgx.Conn) ([]Table, error) {
 	return tables, nil
 }
 
-// fetchColumns grabs all 'relevant' columns of a specified table
-// relevant is defined as non-generated, non-always identity columns
-func fetchColumns(conn *pgx.Conn, tableID pgtype.OID) ([]Column, error) {
+// Columns grabs columns of specified table with properties:
+// non-generated, non-always identity columns
+func Columns(conn *pgx.Conn, tableID pgtype.OID) ([]Column, error) {
 	// query table columns
 	rows, err := conn.Query(
 		context.Background(),
