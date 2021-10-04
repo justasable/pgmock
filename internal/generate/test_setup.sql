@@ -1,3 +1,5 @@
+BEGIN;
+
 -- public schema
 CREATE TABLE public.Types (
     id integer GENERATED ALWAYS AS IDENTITY,
@@ -6,12 +8,14 @@ CREATE TABLE public.Types (
 );
 
 CREATE TABLE public.Constraints (
-    id_one integer,
-    id_two integer,
-    nullable integer,
-    not_nullable integer NOT NULL,
-    generated integer GENERATED ALWAYS AS (3) STORED,
-    PRIMARY KEY (id_one, id_two)
+    con_pk_one integer,
+    con_pk_two integer,
+    con_nullable integer,
+    con_not_nullable integer NOT NULL,
+    con_default_null integer DEFAULT 4,
+    con_default_not_null integer DEFAULT 5 NOT NULL,
+    con_generated integer GENERATED ALWAYS AS (3) STORED,
+    PRIMARY KEY (con_pk_one, con_pk_two)
 );
 
 -- public view
@@ -24,5 +28,7 @@ CREATE TABLE test.References (
     fk_multiple_one integer,
     fk_multiple_two integer,
     FOREIGN KEY (fk_single) REFERENCES public.Types (id),
-    FOREIGN KEY (fk_multiple_one, fk_multiple_two) REFERENCES public.Constraints(id_one, id_two)
+    FOREIGN KEY (fk_multiple_one, fk_multiple_two) REFERENCES public.Constraints(con_pk_one, con_pk_two)
 );
+
+COMMIT;
