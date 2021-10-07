@@ -1,28 +1,33 @@
 package query_test
 
 import (
-	"fmt"
-	"os"
+	"context"
 	"testing"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/justasable/pgmock/internal/connect"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestMain(m *testing.M) {
-	// drop and recreate database
-	if err := connect.DropAndRecreateDB(); err != nil {
-		fmt.Printf("could not drop and recreate db: %+v", err)
-		os.Exit(1)
-	}
+type DefaultSuite struct {
+	suite.Suite
+	conn *pgx.Conn
+}
 
-	// setup test schema{
-	err := connect.RunScript("test_setup.sql")
-	if err != nil {
-		fmt.Printf("could not run setup script: %+v", err)
-		os.Exit(1)
-	}
+func TestDefaultSuite(t *testing.T) {
+	suite.Run(t, new(DefaultSuite))
+}
 
-	// run tests
-	ret := m.Run()
-	os.Exit(ret)
+func (s *DefaultSuite) SetupTest() {
+	err := connect.SetupDBWithScript("test_setup.sql")
+	s.NoError(err)
+
+	conn, err := connect.Connect()
+	s.NoError(err)
+
+	s.conn = conn
+}
+
+func (s *DefaultSuite) TearDownTest() {
+	s.conn.Close(context.Background())
 }

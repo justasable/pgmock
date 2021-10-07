@@ -5,8 +5,23 @@ import (
 	"os/exec"
 )
 
-// DropAndRecreateDB drops a database and recreates it from template0
-func DropAndRecreateDB() error {
+// SetupDBWithScript recreates a database from template0, and
+// runs the specified setup script
+func SetupDBWithScript(path string) error {
+	if err := dropAndRecreateDB(); err != nil {
+		return err
+	}
+
+	if path != "" {
+		if err := runScript(path); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func dropAndRecreateDB() error {
 	// common command options
 	cmdOpts := []string{
 		"-h", cfg.Host,
@@ -36,8 +51,7 @@ func DropAndRecreateDB() error {
 	return nil
 }
 
-// RunScript runs sql script to help establish a known db state
-func RunScript(path string) error {
+func runScript(path string) error {
 	// command options
 	cmdOpts := []string{
 		"-h", cfg.Host,
