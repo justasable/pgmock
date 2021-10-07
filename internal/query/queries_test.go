@@ -1,25 +1,13 @@
 package query_test
 
 import (
-	"context"
-	"testing"
-
-	"github.com/justasable/pgmock/internal/connect"
 	"github.com/justasable/pgmock/internal/query"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func TestTables(t *testing.T) {
+func (s *DefaultSuite) TestTables() {
 	// fetch tables
-	conn, err := connect.Connect()
-	require.NoError(t, err)
-	defer conn.Close(context.Background())
-	tt, err := query.Tables(conn)
-	require.NoError(t, err)
-
-	// check number of tables returned
-	require.Len(t, tt, 3)
+	tt, err := query.Tables(s.conn)
+	s.Require().NoError(err)
 
 	// expected tables
 	expected := []query.Table{
@@ -43,6 +31,9 @@ func TestTables(t *testing.T) {
 		}},
 	}
 
+	// check number of tables returned
+	s.Require().Len(tt, len(expected))
+
 	// fill in table oids
 out:
 	for i := 0; i < len(expected); i++ {
@@ -52,7 +43,7 @@ out:
 				continue out
 			}
 		}
-		assert.Failf(t, "table not found: %s.%s", expected[i].Namespace, expected[i].Name)
+		s.Failf("table not found: %s.%s", expected[i].Namespace, expected[i].Name)
 	}
 
 	// fill in foreign key oids
@@ -64,7 +55,7 @@ out:
 	for _, e := range expected {
 		for _, aTable := range tt {
 			if e.ID == aTable.ID {
-				assert.Equalf(t, e, aTable, "mismatch in table: %s.%s", e.Namespace, e.Name)
+				s.Equalf(e, aTable, "mismatch in table: %s.%s", e.Namespace, e.Name)
 			}
 		}
 	}
