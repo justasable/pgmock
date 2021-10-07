@@ -6,7 +6,7 @@ Generate provides fake data in a deterministic way
 
 | Data Type   | Values                                                                                                            |
 | ----------- | ----------------------------------------------------------------------------------------------------------------- |
-| integer     | 0, -1, 1, -2147483648, 2147483648                                                                                 |
+| integer     | 0, 1, -1, 2147483648, -2147483648                                                                                 |
 | numeric     | 0.00, -1.23, 1.23, NaN                                                                                            |
 |             | ± 1000___.___0001 i.e. 131072 digits before decimal point, 16383 digits after decimal point                       |
 | text        | hello world, E'3?!-+@.(\u0001)ñ水불ツ😂'                                                                           |
