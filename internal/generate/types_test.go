@@ -66,6 +66,27 @@ func TestTimestampTZ(t *testing.T) {
 	assert.Equal(t, pgtype.Timestamptz{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity}, got[4])
 }
 
+func TestDate(t *testing.T) {
+	expected := []string{
+		"1991-11-11",
+		"-4713-11-24",
+		"5874897-12-31",
+	}
+	got := generate.Date()
+
+	// check non infinity times
+	for i := 0; i < 3; i++ {
+		assert.Equal(t, expected[i], got[i].Time.Format("2006-01-02"))
+		assert.Equal(t, pgtype.Present, got[i].Status)
+		assert.Equal(t, pgtype.None, got[i].InfinityModifier)
+	}
+
+	// check infinity times
+	assert.Equal(t, pgtype.Date{Status: pgtype.Present, InfinityModifier: pgtype.Infinity}, got[3])
+	assert.Equal(t, pgtype.Date{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity}, got[4])
+
+}
+
 func TestUUID(t *testing.T) {
 	got := generate.UUID()
 	expected := []string{

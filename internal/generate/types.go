@@ -53,6 +53,22 @@ func TimestampTZ() []pgtype.Timestamptz {
 	}
 }
 
+func Date() []pgtype.Date {
+	t1, _ := time.Parse("2006-01-02", "1991-11-11")
+	t2, _ := time.Parse("2006-01-02", "0001-11-24")
+	t2 = t2.AddDate(-4714, 0, 0)
+	t3, _ := time.Parse("2006-01-02", "0001-12-31")
+	t3 = t3.AddDate(5874896, 0, 0)
+
+	return []pgtype.Date{
+		{Time: t1, Status: pgtype.Present},
+		{Time: t2, Status: pgtype.Present},
+		{Time: t3, Status: pgtype.Present},
+		{Status: pgtype.Present, InfinityModifier: pgtype.Infinity},
+		{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity},
+	}
+}
+
 func UUID() []pgtype.UUID {
 	return []pgtype.UUID{
 		// "00010203-0405-0607-0809-0a0b0c0d0e0f"
