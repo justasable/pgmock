@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgtype"
 	"github.com/justasable/pgmock/internal/generate"
@@ -43,6 +44,26 @@ func TestText(t *testing.T) {
 	}
 	got := generate.Text()
 	assert.Equal(t, expected, got)
+}
+
+func TestTimestampTZ(t *testing.T) {
+	expected := []string{
+		"2021-11-01T05:34:56.123456Z",
+		"-4713-11-24T00:00:00Z",
+		"294276-12-31T23:59:59.999999Z",
+	}
+	got := generate.TimestampTZ()
+
+	require.Len(t, got, len(expected)+2)
+
+	// check non infinity times
+	for i := 0; i < 3; i++ {
+		assert.Equal(t, expected[i], got[i].Time.Format(time.RFC3339Nano))
+	}
+
+	// check infinity times
+	assert.Equal(t, pgtype.Timestamptz{Status: pgtype.Present, InfinityModifier: pgtype.Infinity}, got[3])
+	assert.Equal(t, pgtype.Timestamptz{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity}, got[4])
 }
 
 func TestUUID(t *testing.T) {

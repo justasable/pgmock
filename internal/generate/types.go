@@ -2,6 +2,7 @@ package generate
 
 import (
 	"math/big"
+	"time"
 
 	"github.com/jackc/pgtype"
 )
@@ -27,6 +28,29 @@ func Numeric() []pgtype.Numeric {
 
 func Text() []string {
 	return []string{"hello world", "3?!-+@.(\x01)ñ水불ツ😂"}
+}
+
+func TimestampTZ() []pgtype.Timestamptz {
+	// create a normal timestamptz i.e. 2021-11-01 12:34:56.123456+07
+	tz, _ := time.Parse(time.RFC3339Nano, "2021-11-01T06:34:56.123456+01:00")
+
+	// create pg min range timestamptz i.e. 4714-11-24 00:22:00+00:22 BC
+	// i.e. []byte{1, 255, 255, 255, 221, 94, 237, 229, 0, 0, 0, 0, 0, 0, 82}
+	pgMin := new(time.Time)
+	pgMin.UnmarshalBinary([]byte{1, 255, 255, 255, 221, 94, 237, 229, 0, 0, 0, 0, 0, 0, 82})
+
+	// create pg max range timestamp i.e. 294276-12-31 23:59:59.999999+00
+	// i.e. []byte{1, 0, 0, 8, 114, 43, 196, 208, 255, 59, 154, 198, 24, 0, 60}
+	pgMax := new(time.Time)
+	pgMax.UnmarshalBinary([]byte{1, 0, 0, 8, 114, 43, 196, 208, 255, 59, 154, 198, 24, 0, 60})
+
+	return []pgtype.Timestamptz{
+		{Time: tz.UTC(), Status: pgtype.Present},
+		{Time: (*pgMin).UTC(), Status: pgtype.Present},
+		{Time: (*pgMax).UTC(), Status: pgtype.Present},
+		{Status: pgtype.Present, InfinityModifier: pgtype.Infinity},
+		{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity},
+	}
 }
 
 func UUID() []pgtype.UUID {
