@@ -84,7 +84,17 @@ func TestDate(t *testing.T) {
 	// check infinity times
 	assert.Equal(t, pgtype.Date{Status: pgtype.Present, InfinityModifier: pgtype.Infinity}, got[3])
 	assert.Equal(t, pgtype.Date{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity}, got[4])
+}
 
+func TestByte(t *testing.T) {
+	expected := []pgtype.Bytea{
+		{Status: pgtype.Present, Bytes: []byte{104, 101, 108, 108, 111}},
+		{Status: pgtype.Present, Bytes: []byte{109, 97, 195, 177, 97, 110, 97, 32, 226, 130, 172, 53, 44, 57, 48}},
+		{Status: pgtype.Present, Bytes: []byte{0}},
+	}
+	got := generate.Byte()
+
+	assert.Equal(t, expected, got)
 }
 
 func TestUUID(t *testing.T) {

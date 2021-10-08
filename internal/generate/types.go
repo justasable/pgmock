@@ -69,6 +69,14 @@ func Date() []pgtype.Date {
 	}
 }
 
+func Byte() []pgtype.Bytea {
+	return []pgtype.Bytea{
+		{Status: pgtype.Present, Bytes: []byte("hello")},
+		{Status: pgtype.Present, Bytes: []byte("mañana €5,90")},
+		{Status: pgtype.Present, Bytes: []byte{0}},
+	}
+}
+
 func UUID() []pgtype.UUID {
 	return []pgtype.UUID{
 		// "00010203-0405-0607-0809-0a0b0c0d0e0f"
