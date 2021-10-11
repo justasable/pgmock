@@ -15,8 +15,12 @@ func IntegerUnique(num int) int {
 	return 100 + num
 }
 
-func Boolean() []bool {
+func BooleanDefaults() []bool {
 	return []bool{false, true}
+}
+
+func BooleanUnique(idx int) bool {
+	return idx%2 != 0
 }
 
 func Numeric() []pgtype.Numeric {

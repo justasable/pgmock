@@ -22,10 +22,13 @@ func TestIntegerUnique(t *testing.T) {
 	assert.Equal(t, 105, generate.IntegerUnique(5))
 }
 
-func TestBoolean(t *testing.T) {
-	expected := []bool{false, true}
-	got := generate.Boolean()
-	assert.Equal(t, expected, got)
+func TestBooleanDefaults(t *testing.T) {
+	assert.Equal(t, []bool{false, true}, generate.BooleanDefaults())
+}
+
+func TestBooleanUnique(t *testing.T) {
+	assert.Equal(t, false, generate.BooleanUnique(50))
+	assert.Equal(t, true, generate.BooleanUnique(51))
 }
 
 func TestNumeric(t *testing.T) {
