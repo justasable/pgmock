@@ -16,8 +16,13 @@ import (
 func TestInteger(t *testing.T) {
 	expected := []int{0, 1, -1, 2147483648, -2147483648}
 	got := generate.Integer()
-
 	assert.Equal(t, got, expected)
+}
+
+func TestBoolean(t *testing.T) {
+	expected := []bool{false, true}
+	got := generate.Boolean()
+	assert.Equal(t, expected, got)
 }
 
 func TestNumeric(t *testing.T) {

@@ -11,6 +11,10 @@ func Integer() []int {
 	return []int{0, 1, -1, 2147483648, -2147483648}
 }
 
+func Boolean() []bool {
+	return []bool{false, true}
+}
+
 func Numeric() []pgtype.Numeric {
 	max := new(big.Int).Exp(big.NewInt(10), big.NewInt(147454), nil)
 	max.Add(max, big.NewInt(1))
