@@ -19,6 +19,7 @@ type Column struct {
 	Constraint Constraint
 	FKTableID  pgtype.OID
 	FKColumns  []int
+	DataType   pgtype.OID
 }
 
 type Identity int8
