@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"fmt"
 	"math/big"
 	"time"
 
@@ -23,7 +24,7 @@ func BooleanUnique(idx int) bool {
 	return idx%2 != 0
 }
 
-func Numeric() []pgtype.Numeric {
+func NumericDefaults() []pgtype.Numeric {
 	max := new(big.Int).Exp(big.NewInt(10), big.NewInt(147454), nil)
 	max.Add(max, big.NewInt(1))
 	min := new(big.Int).Neg(max)
@@ -36,6 +37,13 @@ func Numeric() []pgtype.Numeric {
 		{Int: max, Exp: -16383, Status: pgtype.Present},
 		{Int: min, Exp: -16383, Status: pgtype.Present},
 	}
+
+}
+
+func NumericUnique(num int) pgtype.Numeric {
+	n := pgtype.Numeric{}
+	n.Set(fmt.Sprintf("%d.%d", num, num))
+	return n
 }
 
 func Text() []string {

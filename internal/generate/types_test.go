@@ -31,7 +31,7 @@ func TestBooleanUnique(t *testing.T) {
 	assert.Equal(t, true, generate.BooleanUnique(51))
 }
 
-func TestNumeric(t *testing.T) {
+func TestNumericDefaults(t *testing.T) {
 	max := new(big.Int).Exp(big.NewInt(10), big.NewInt(147454), nil)
 	max.Add(max, big.NewInt(1))
 	min := new(big.Int).Neg(max)
@@ -45,7 +45,13 @@ func TestNumeric(t *testing.T) {
 		{Int: min, Exp: -16383, Status: pgtype.Present},
 	}
 
-	assert.Equal(t, expected, generate.Numeric())
+	for idx, e := range expected {
+		assert.Equalf(t, e, generate.NumericDefaults()[idx], "mismatched value at index %d", idx)
+	}
+}
+
+func TestNumericUnique(t *testing.T) {
+	assert.Equal(t, pgtype.Numeric{Int: big.NewInt(7070), Exp: -2, Status: pgtype.Present}, generate.NumericUnique(70))
 }
 
 func TestText(t *testing.T) {
