@@ -7,8 +7,12 @@ import (
 	"github.com/jackc/pgtype"
 )
 
-func Integer() []int {
+func IntegerDefaults() []int {
 	return []int{0, 1, -1, 2147483648, -2147483648}
+}
+
+func IntegerUnique(num int) int {
+	return 100 + num
 }
 
 func Boolean() []bool {

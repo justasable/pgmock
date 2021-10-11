@@ -13,10 +13,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInteger(t *testing.T) {
+func TestIntegerDefaults(t *testing.T) {
 	expected := []int{0, 1, -1, 2147483648, -2147483648}
-	got := generate.Integer()
-	assert.Equal(t, got, expected)
+	assert.Equal(t, expected, generate.IntegerDefaults())
+}
+
+func TestIntegerUnique(t *testing.T) {
+	assert.Equal(t, 105, generate.IntegerUnique(5))
 }
 
 func TestBoolean(t *testing.T) {
