@@ -12,7 +12,7 @@ Generate provides fake data in a deterministic way
 |             | + 1000___.___0001 i.e. 131072 digits before decimal point, 16383 digits after decimal point |
 |             | - 1000___.___0001 i.e. 131072 digits before decimal point, 16383 digits after decimal point |
 | text        | hello world, E'3?!-+@.(\u0001)ñ水불ツ😂'                                                     |
-| timestamptz | 2021-11-01 12:34:56.123456+07                                                               |
+| timestamptz | 1991-11-25 12:34:56.123456+07                                                               |
 |             | 4714-11-24 00:22:00+00:22 BC, 294276-12-31 23:59:59.999999+00                               |
 |             | infinity, -infinity                                                                         |
 | date        | 1991-11-11, 4714-11-24 BC, 5874897-12-31, infinity, -infinity                               |

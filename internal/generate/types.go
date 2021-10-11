@@ -54,9 +54,9 @@ func TextUnique(num int) string {
 	return fmt.Sprintf("unique_%d", num)
 }
 
-func TimestampTZ() []pgtype.Timestamptz {
-	// create a normal timestamptz i.e. 2021-11-01 12:34:56.123456+07
-	tz, _ := time.Parse(time.RFC3339Nano, "2021-11-01T06:34:56.123456+01:00")
+func TimestampTZDefaults() []pgtype.Timestamptz {
+	// create normal timestamptz i.e. 1991-11-25 12:34:56.123456+07
+	tz, _ := time.Parse(time.RFC3339Nano, "1991-11-25T06:34:56.123456+01:00")
 
 	// create pg min range timestamptz i.e. 4714-11-24 00:22:00+00:22 BC
 	// i.e. []byte{1, 255, 255, 255, 221, 94, 237, 229, 0, 0, 0, 0, 0, 0, 82}
@@ -77,7 +77,13 @@ func TimestampTZ() []pgtype.Timestamptz {
 	}
 }
 
-func Date() []pgtype.Date {
+func TimestamptTZUnique(num int) pgtype.Timestamptz {
+	tz, _ := time.Parse(time.RFC3339Nano, "2000-01-02T01:23:45.123456+00:00")
+	tz = tz.AddDate(num, 0, 0).UTC()
+	return pgtype.Timestamptz{Time: tz, Status: pgtype.Present}
+}
+
+func DateDefaults() []pgtype.Date {
 	t1, _ := time.Parse("2006-01-02", "1991-11-11")
 	t2, _ := time.Parse("2006-01-02", "0001-11-24")
 	t2 = t2.AddDate(-4714, 0, 0)
@@ -91,6 +97,12 @@ func Date() []pgtype.Date {
 		{Status: pgtype.Present, InfinityModifier: pgtype.Infinity},
 		{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity},
 	}
+}
+
+func DateUnique(num int) pgtype.Date {
+	t1, _ := time.Parse("2006-01-02", "2000-01-02")
+	t1 = t1.AddDate(num, 0, 0)
+	return pgtype.Date{Time: t1, Status: pgtype.Present}
 }
 
 func Byte() []pgtype.Bytea {

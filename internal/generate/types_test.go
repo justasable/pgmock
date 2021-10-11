@@ -66,44 +66,52 @@ func TestTextUnique(t *testing.T) {
 	assert.Equal(t, "unique_1010", generate.TextUnique(1010))
 }
 
-func TestTimestampTZ(t *testing.T) {
+func TestTimestampTZDefaults(t *testing.T) {
+	// default values
 	expected := []string{
-		"2021-11-01T05:34:56.123456Z",
+		"1991-11-25T05:34:56.123456Z",
 		"-4713-11-24T00:00:00Z",
 		"294276-12-31T23:59:59.999999Z",
 	}
-	got := generate.TimestampTZ()
+	got := generate.TimestampTZDefaults()
 
-	require.Len(t, got, len(expected)+2)
-
-	// check non infinity times
-	for i := 0; i < 3; i++ {
-		assert.Equal(t, expected[i], got[i].Time.Format(time.RFC3339Nano))
+	for idx, e := range expected {
+		assert.Equalf(t, e, got[idx].Time.Format(time.RFC3339Nano), "mismatched value at index %d", idx)
+		assert.Equalf(t, pgtype.Present, got[idx].Status, "mismatched value at index %d", idx)
+		assert.Equalf(t, pgtype.None, got[idx].InfinityModifier, "mismatched value at index %d", idx)
 	}
-
-	// check infinity times
 	assert.Equal(t, pgtype.Timestamptz{Status: pgtype.Present, InfinityModifier: pgtype.Infinity}, got[3])
 	assert.Equal(t, pgtype.Timestamptz{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity}, got[4])
 }
 
-func TestDate(t *testing.T) {
+func TestTimestampTZUnique(t *testing.T) {
+	got := generate.TimestamptTZUnique(100)
+	assert.Equal(t, "2100-01-02T01:23:45.123456Z", got.Time.Format(time.RFC3339Nano))
+	assert.Equal(t, pgtype.Present, got.Status)
+	assert.Equal(t, pgtype.None, got.InfinityModifier)
+}
+
+func TestDateDefaults(t *testing.T) {
 	expected := []string{
 		"1991-11-11",
 		"-4713-11-24",
 		"5874897-12-31",
 	}
-	got := generate.Date()
-
-	// check non infinity times
-	for i := 0; i < 3; i++ {
-		assert.Equal(t, expected[i], got[i].Time.Format("2006-01-02"))
-		assert.Equal(t, pgtype.Present, got[i].Status)
-		assert.Equal(t, pgtype.None, got[i].InfinityModifier)
+	got := generate.DateDefaults()
+	for idx, e := range expected {
+		assert.Equalf(t, e, got[idx].Time.Format("2006-01-02"), "mismatched value at index %d", idx)
+		assert.Equalf(t, pgtype.Present, got[idx].Status, "mismatched value at index %d", idx)
+		assert.Equalf(t, pgtype.None, got[idx].InfinityModifier, "mismatched value at index %d", idx)
 	}
-
-	// check infinity times
 	assert.Equal(t, pgtype.Date{Status: pgtype.Present, InfinityModifier: pgtype.Infinity}, got[3])
 	assert.Equal(t, pgtype.Date{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity}, got[4])
+}
+
+func TestDateUnique(t *testing.T) {
+	got := generate.DateUnique(100)
+	assert.Equal(t, "2100-01-02", got.Time.Format("2006-01-02"))
+	assert.Equal(t, pgtype.Present, got.Status)
+	assert.Equal(t, pgtype.None, got.InfinityModifier)
 }
 
 func TestByte(t *testing.T) {
