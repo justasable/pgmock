@@ -46,8 +46,12 @@ func NumericUnique(num int) pgtype.Numeric {
 	return n
 }
 
-func Text() []string {
+func TextDefaults() []string {
 	return []string{"hello world", "3?!-+@.(\x01)ñ水불ツ😂"}
+}
+
+func TextUnique(num int) string {
+	return fmt.Sprintf("unique_%d", num)
 }
 
 func TimestampTZ() []pgtype.Timestamptz {

@@ -54,13 +54,16 @@ func TestNumericUnique(t *testing.T) {
 	assert.Equal(t, pgtype.Numeric{Int: big.NewInt(7070), Exp: -2, Status: pgtype.Present}, generate.NumericUnique(70))
 }
 
-func TestText(t *testing.T) {
+func TestTextDefaults(t *testing.T) {
 	expected := []string{
 		"hello world",
 		"3?!-+@.(\x01)\u00f1\u6c34\ubd88\u30c4\U0001f602",
 	}
-	got := generate.Text()
-	assert.Equal(t, expected, got)
+	assert.Equal(t, expected, generate.TextDefaults())
+}
+
+func TestTextUnique(t *testing.T) {
+	assert.Equal(t, "unique_1010", generate.TextUnique(1010))
 }
 
 func TestTimestampTZ(t *testing.T) {
