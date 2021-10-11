@@ -114,15 +114,20 @@ func TestDateUnique(t *testing.T) {
 	assert.Equal(t, pgtype.None, got.InfinityModifier)
 }
 
-func TestByte(t *testing.T) {
+func TestByteDefaults(t *testing.T) {
 	expected := []pgtype.Bytea{
 		{Status: pgtype.Present, Bytes: []byte{104, 101, 108, 108, 111}},
 		{Status: pgtype.Present, Bytes: []byte{109, 97, 195, 177, 97, 110, 97, 32, 226, 130, 172, 53, 44, 57, 48}},
 		{Status: pgtype.Present, Bytes: []byte{0}},
 	}
-	got := generate.Byte()
-
+	got := generate.ByteDefaults()
 	assert.Equal(t, expected, got)
+}
+
+func TestByteUnique(t *testing.T) {
+	got := generate.ByteUnique(2345)
+	assert.Equal(t, "unique_2345", string(got.Bytes))
+	assert.Equal(t, pgtype.Present, got.Status)
 }
 
 func TestUUID(t *testing.T) {

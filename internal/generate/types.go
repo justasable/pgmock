@@ -105,12 +105,15 @@ func DateUnique(num int) pgtype.Date {
 	return pgtype.Date{Time: t1, Status: pgtype.Present}
 }
 
-func Byte() []pgtype.Bytea {
+func ByteDefaults() []pgtype.Bytea {
 	return []pgtype.Bytea{
 		{Status: pgtype.Present, Bytes: []byte("hello")},
 		{Status: pgtype.Present, Bytes: []byte("mañana €5,90")},
 		{Status: pgtype.Present, Bytes: []byte{0}},
 	}
+}
+func ByteUnique(num int) pgtype.Bytea {
+	return pgtype.Bytea{Status: pgtype.Present, Bytes: []byte(fmt.Sprintf("unique_%d", num))}
 }
 
 func UUID() []pgtype.UUID {
