@@ -116,17 +116,17 @@ func ByteUnique(num int) pgtype.Bytea {
 	return pgtype.Bytea{Status: pgtype.Present, Bytes: []byte(fmt.Sprintf("unique_%d", num))}
 }
 
-func UUID() []pgtype.UUID {
+func UUIDDefaults() []pgtype.UUID {
 	return []pgtype.UUID{
 		// "00010203-0405-0607-0809-0a0b0c0d0e0f"
-		{
-			Bytes:  [16]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-			Status: pgtype.Present,
-		},
+		{Bytes: [16]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, Status: pgtype.Present},
 		// "00000000-0000-0000-0000-000000000000"
-		{
-			Bytes:  [16]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-			Status: pgtype.Present,
-		},
+		{Bytes: [16]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, Status: pgtype.Present},
 	}
+}
+
+func UUIDUnique(num int) pgtype.UUID {
+	ret := new(pgtype.UUID)
+	ret.Set(fmt.Sprintf("%0.32x", num))
+	return *ret
 }
