@@ -12,7 +12,7 @@ Generate provides fake data in a deterministic way
 
 | Data Type   | Values                                                                                      |
 | ----------- | ------------------------------------------------------------------------------------------- |
-| integer     | 0, 1, -1, 2147483648, -2147483648                                                           |
+| integer     | 0, 1, -1, 2147483647, -2147483648                                                           |
 | bool        | false, true                                                                                 |
 | numeric     | 0.00, 1.23, -1.23, NaN                                                                      |
 |             | + 1000___.___0001 i.e. 131072 digits before decimal point, 16383 digits after decimal point |

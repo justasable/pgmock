@@ -13,7 +13,7 @@ import (
 )
 
 func TestIntegerDefaults(t *testing.T) {
-	expected := []int{0, 1, -1, 2147483648, -2147483648}
+	expected := []int{0, 1, -1, 2147483647, -2147483648}
 	assert.Equal(t, expected, generate.IntegerDefaults())
 }
 

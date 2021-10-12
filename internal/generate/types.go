@@ -9,7 +9,7 @@ import (
 )
 
 func IntegerDefaults() []int {
-	return []int{0, 1, -1, 2147483648, -2147483648}
+	return []int{0, 1, -1, 2147483647, -2147483648}
 }
 
 func IntegerUnique(num int) int {
