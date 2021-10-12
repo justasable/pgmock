@@ -68,7 +68,8 @@ func columns(conn *pgx.Conn, tableID pgtype.OID) ([]Column, error) {
 		context.Background(),
 		`SELECT
 			att.attnum, att.attname, att.attnotnull, att.atthasdef, att.attidentity,
-			att.attgenerated, COALESCE(con.contype, ''), COALESCE(con.confrelid, 0), con.confkey
+			att.attgenerated, COALESCE(con.contype, ''), COALESCE(con.confrelid, 0), con.confkey,
+			att.atttypid
 		FROM pg_attribute att
 		LEFT OUTER JOIN pg_constraint con
 			ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
@@ -88,6 +89,7 @@ func columns(conn *pgx.Conn, tableID pgtype.OID) ([]Column, error) {
 		if err = rows.Scan(
 			&c.Order, &c.Name, &c.IsNotNull, &c.HasDefault, &c.Identity,
 			&c.Generated, &c.Constraint, &c.FKTableID, &c.FKColumns,
+			&c.DataType,
 		); err != nil {
 			return nil, err
 		}
