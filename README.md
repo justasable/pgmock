@@ -10,15 +10,9 @@ Given a schema, generate mock data in a way that
 
 Note: currently in development with no guarantees for compatabilty between commits
 
-## Connection
+## Database Connection
 
-Database connection params must be specified explicitly for safety
-
-- `PGMOCK_HOST`
-- `PGMOCK_PORT`
-- `PGMOCK_DATABASE`
-- `PGMOCK_USER`
-- `PGMOCK_PASSWORD` (optional)
+Uses [PGConnect](https://www.github.com/justasable/pgconnect)
 
 ## Testing
 
