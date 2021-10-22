@@ -42,12 +42,12 @@ func (s *QuerySuite) TestTables() {
 	// expected tables
 	expected := []query.Table{
 		{Namespace: "public", Name: "types", Columns: []query.Column{
-			{Order: 1, Name: "id", IsNotNull: true, Identity: query.IDENTITY_ALWAYS, Constraint: query.CONSTRAINT_PRIMARY_KEY, DataType: pgtype.Int4OID},
+			{Order: 1, Name: "id", IsNotNull: true, Identity: query.IDENTITY_ALWAYS, Constraint: query.CONSTRAINT_PRIMARY_KEY, ConKeys: []int{1}, DataType: pgtype.Int4OID},
 			{Order: 2, Name: "id_default", IsNotNull: true, Identity: query.IDENTITY_DEFAULT, DataType: pgtype.Int4OID},
 		}},
 		{Namespace: "public", Name: "constraints", Columns: []query.Column{
-			{Order: 1, Name: "con_pk_one", IsNotNull: true, Constraint: query.CONSTRAINT_PRIMARY_KEY, DataType: pgtype.Int4OID},
-			{Order: 2, Name: "con_pk_two", IsNotNull: true, Constraint: query.CONSTRAINT_PRIMARY_KEY, DataType: pgtype.Int4OID},
+			{Order: 1, Name: "con_pk_one", IsNotNull: true, Constraint: query.CONSTRAINT_PRIMARY_KEY, ConKeys: []int{1, 2}, DataType: pgtype.Int4OID},
+			{Order: 2, Name: "con_pk_two", IsNotNull: true, Constraint: query.CONSTRAINT_PRIMARY_KEY, ConKeys: []int{1, 2}, DataType: pgtype.Int4OID},
 			{Order: 3, Name: "con_null", DataType: pgtype.Int4OID},
 			{Order: 4, Name: "con_not_null", IsNotNull: true, DataType: pgtype.Int4OID},
 			{Order: 5, Name: "con_default", HasDefault: true, DataType: pgtype.Int4OID},
@@ -55,9 +55,9 @@ func (s *QuerySuite) TestTables() {
 			{Order: 7, Name: "con_generated", HasDefault: true, Generated: query.GENERATED_STORED, DataType: pgtype.Int4OID},
 		}},
 		{Namespace: "test", Name: "references", Columns: []query.Column{
-			{Order: 1, Name: "fk_single", Constraint: query.CONSTRAINT_FOREIGN_KEY, FKColumns: []int{1}, DataType: pgtype.Int4OID},
-			{Order: 2, Name: "fk_multiple_one", Constraint: query.CONSTRAINT_FOREIGN_KEY, FKColumns: []int{1, 2}, DataType: pgtype.Int4OID},
-			{Order: 3, Name: "fk_multiple_two", Constraint: query.CONSTRAINT_FOREIGN_KEY, FKColumns: []int{1, 2}, DataType: pgtype.Int4OID},
+			{Order: 1, Name: "fk_single", Constraint: query.CONSTRAINT_FOREIGN_KEY, ConKeys: []int{1}, FKColumns: []int{1}, DataType: pgtype.Int4OID},
+			{Order: 2, Name: "fk_multiple_one", Constraint: query.CONSTRAINT_FOREIGN_KEY, ConKeys: []int{2, 3}, FKColumns: []int{1, 2}, DataType: pgtype.Int4OID},
+			{Order: 3, Name: "fk_multiple_two", Constraint: query.CONSTRAINT_FOREIGN_KEY, ConKeys: []int{2, 3}, FKColumns: []int{1, 2}, DataType: pgtype.Int4OID},
 		}},
 	}
 

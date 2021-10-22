@@ -43,7 +43,8 @@ func tables(conn *pgx.Conn) ([]Table, error) {
 		WHERE 
 			pgc.relkind = ANY (ARRAY['r'::"char", 'p'::"char"])
 			AND NOT pg_is_other_temp_schema(nsp.oid)
-			AND NOT nsp.nspname = ANY(ARRAY['pg_catalog', 'pg_toast', 'information_schema'])`)
+			AND NOT nsp.nspname = ANY(ARRAY['pg_catalog', 'pg_toast', 'information_schema'])
+		ORDER BY nsp.nspname, pgc.relname`)
 	if err != nil {
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
@@ -68,15 +69,16 @@ func columns(conn *pgx.Conn, tableID pgtype.OID) ([]Column, error) {
 		context.Background(),
 		`SELECT
 			att.attnum, att.attname, att.attnotnull, att.atthasdef, att.attidentity,
-			att.attgenerated, COALESCE(con.contype, ''), COALESCE(con.confrelid, 0), con.confkey,
-			att.atttypid
+			att.attgenerated, COALESCE(con.contype, ''), con.conkey,
+			COALESCE(con.confrelid, 0), con.confkey, att.atttypid
 		FROM pg_attribute att
 		LEFT OUTER JOIN pg_constraint con
 			ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
 		WHERE att.attrelid=$1
 			AND att.attnum > 0
 			AND NOT att.attisdropped
-	`, tableID)
+		ORDER BY att.attnum`,
+		tableID)
 	if err != nil {
 		return nil, err
 	}
@@ -88,8 +90,8 @@ func columns(conn *pgx.Conn, tableID pgtype.OID) ([]Column, error) {
 		var c Column
 		if err = rows.Scan(
 			&c.Order, &c.Name, &c.IsNotNull, &c.HasDefault, &c.Identity,
-			&c.Generated, &c.Constraint, &c.FKTableID, &c.FKColumns,
-			&c.DataType,
+			&c.Generated, &c.Constraint, &c.ConKeys,
+			&c.FKTableID, &c.FKColumns, &c.DataType,
 		); err != nil {
 			return nil, err
 		}

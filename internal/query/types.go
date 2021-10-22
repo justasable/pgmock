@@ -17,6 +17,7 @@ type Column struct {
 	Identity   Identity
 	Generated  Generated
 	Constraint Constraint
+	ConKeys    []int
 	FKTableID  pgtype.OID
 	FKColumns  []int
 	DataType   pgtype.OID
