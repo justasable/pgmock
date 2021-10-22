@@ -31,9 +31,9 @@ func GenerateData(conn *pgx.Conn) error {
 
 func generateForTableValues(conn *pgx.Conn, table *query.Table) error {
 	// create task for each column
-	var tt []*task
+	var tt []*colTask
 	for i := 0; i < len(table.Columns); i++ {
-		t, err := NewTask(&table.Columns[i])
+		t, err := newColTask(table.Columns[i])
 		if err != nil {
 			return err
 		} else if t == nil {
@@ -60,7 +60,7 @@ func generateForTableValues(conn *pgx.Conn, table *query.Table) error {
 			colNames = append(colNames, t.column.Name)
 			values = append(values, t.CurrentVal())
 
-			if !t.Finished() {
+			if !t.Done() {
 				finished = false
 			}
 			t.Advance()

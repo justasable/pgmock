@@ -27,16 +27,16 @@ Generate provides fake data in a deterministic way
 
 ## Unique Values
 
-| Data Type   | Values                                  |
-| ----------- | --------------------------------------- |
-| integer     | 100 + `num`                             |
-| bool        | `num` even false, `num` odd true        |
-| numeric     | `num`.`num`                             |
-| text        | unique_`num`                            |
-| timestamptz | (2000 + `num`)-01-02 01:23:45.123456+00 |
-| date        | (2000 + `num`)-01-02                    |
-| bytea       | unique_`num`::bytea                     |
-| uuid        | 00000000-0000-0000-0...`num`::hex       |
+| Data Type   | Values                                         |
+| ----------- | ---------------------------------------------- |
+| integer     | 100, 101, 102...                               |
+| bool        | false, true, false...                          |
+| numeric     | 0.0, 1.1, 2.2...                               |
+| text        | unique_0, unique_1, unique_2...                |
+| timestamptz | (2000 + `0, 1, 2...`)-01-02 01:23:45.123456+00 |
+| date        | (2000 + `0, 1, 2...`)-01-02                    |
+| bytea       | unique_`0, 1, 2...`::bytea                     |
+| uuid        | 00000000-0000-0000-0...`0, 1, 2...`::hex       |
 
 ## Special Notes
 
