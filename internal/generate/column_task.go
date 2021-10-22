@@ -33,18 +33,18 @@ func newColTask(c query.Column) (*colTask, error) {
 	return t, nil
 }
 
-func (t *colTask) ShouldSkip() bool {
-	return t.cursor == 0 && t.column.HasDefault
-}
-
 func (t *colTask) CurrentVal() interface{} {
 	// return db default value if possible
+	if t.cursor == 0 && t.column.HasDefault {
+		return DEFAULT_VAL
+	}
+
 	// return null value if possible
-	// return our own generated values
 	if !t.column.IsNotNull && (t.cursor == 0 && !t.column.HasDefault || t.cursor == 1 && t.column.HasDefault) {
 		return nil
 	}
 
+	// return our own generated values
 	idx := t.cursor
 	if t.column.HasDefault {
 		idx--

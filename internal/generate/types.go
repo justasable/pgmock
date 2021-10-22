@@ -8,6 +8,10 @@ import (
 	"github.com/jackc/pgtype"
 )
 
+type defaultType string
+
+const DEFAULT_VAL defaultType = "DEFAULT"
+
 func IntegerDefaults() []int {
 	return []int{0, 1, -1, 2147483647, -2147483648}
 }

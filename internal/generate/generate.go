@@ -45,36 +45,36 @@ func generateForTableValues(conn *pgx.Conn, table *query.Table) error {
 	// generate data row until all tasks finished
 	var errs []error
 	for {
+		// check if all tasks finished
 		var finished bool = true
-		var colNames []string
-		var values []interface{}
-
-		// gather values for row
 		for _, t := range tt {
-			// check if we skip current value gen i.e. default val
-			if t.ShouldSkip() {
-				t.Advance()
-				continue
-			}
-
-			colNames = append(colNames, t.column.Name)
-			values = append(values, t.CurrentVal())
-
 			if !t.Done() {
 				finished = false
 			}
-			t.Advance()
 		}
-
 		if finished {
 			break
 		}
 
-		// build db command
+		// gather values for row
+		var colNames []string
+		var values []interface{}
 		var placeholders []string
-		for idx := range values {
-			placeholders = append(placeholders, fmt.Sprintf("$%d", idx+1))
+		var defaultValCount int
+		for i, t := range tt {
+			colNames = append(colNames, t.column.Name)
+			if _, ok := t.CurrentVal().(defaultType); ok {
+				placeholders = append(placeholders, "DEFAULT")
+				defaultValCount++
+			} else {
+				placeholders = append(placeholders, fmt.Sprintf("$%d", i+1-defaultValCount))
+				values = append(values, t.CurrentVal())
+			}
+
+			t.Advance()
 		}
+
+		// build db command
 		cmd := fmt.Sprintf(
 			"INSERT INTO %s.%s (%s) VALUES (%s)",
 			table.Namespace, table.Name,
