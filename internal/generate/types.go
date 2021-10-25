@@ -8,12 +8,6 @@ import (
 	"github.com/jackc/pgtype"
 )
 
-// ValueGenerator generates test values and additional values unique to test value
-type ValueGenerator interface {
-	TestVals() []interface{}
-	UniqueVal(int) interface{}
-}
-
 type integerGen struct{}
 
 func (i integerGen) TestVals() []interface{} {
@@ -142,6 +136,16 @@ func (u defaultGen) TestVals() []interface{} {
 
 func (u defaultGen) UniqueVal(_ int) interface{} {
 	return DEFAULT_VAL
+}
+
+type nullGen struct{}
+
+func (n nullGen) TestVals() []interface{} {
+	return []interface{}{nil}
+}
+
+func (n nullGen) UniqueVal(_ int) interface{} {
+	return nil
 }
 
 type compositeGen struct {

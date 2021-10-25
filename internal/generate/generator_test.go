@@ -9,36 +9,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDefaultGenTestVals(t *testing.T) {
-	c := query.Column{Generated: query.GENERATED_STORED}
-	gen := generate.NewValueGenerator(c)
-	got := gen.TestVals()
-	expected := []interface{}{generate.DEFAULT_VAL}
-	assert.Equal(t, expected, got)
-}
-
-func TestDefaultGenUniqueVal(t *testing.T) {
-	c := query.Column{Generated: query.GENERATED_STORED}
-	gen := generate.NewValueGenerator(c)
-	got := gen.UniqueVal(0)
-	assert.Equal(t, generate.DEFAULT_VAL, got)
-}
-
 func TestCompositeGenTestVals(t *testing.T) {
-	// no default, not null
-	col := query.Column{DataType: pgtype.BoolOID, HasDefault: false, IsNotNull: true}
+	// supported type (no default, not null) -> test vals
+	col := query.Column{DataType: pgtype.BoolOID, IsNotNull: true}
 	gen := generate.NewValueGenerator(col)
-	assert.Equalf(t, []interface{}{true, false}, gen.TestVals(), "no default, not null")
+	assert.Equalf(t, []interface{}{true, false}, gen.TestVals(), "supported type (no default, not null)")
 
-	// default, not null
+	// supported type (no default, nullable) -> null, test vals
+	col = query.Column{DataType: pgtype.BoolOID}
+	gen = generate.NewValueGenerator(col)
+	assert.Equalf(t, []interface{}{nil, true, false}, gen.TestVals(), "supported type (no default, nullable)")
+
+	// supported type (has default, not null) -> test vals, then default
 	col = query.Column{DataType: pgtype.BoolOID, HasDefault: true, IsNotNull: true}
 	expected := []interface{}{true, false, generate.DEFAULT_VAL}
 	gen = generate.NewValueGenerator(col)
-	assert.Equalf(t, expected, gen.TestVals(), "default, not null")
+	assert.Equalf(t, expected, gen.TestVals(), "supported type (has default, not null)")
 
-	// default, null
-	col = query.Column{DataType: pgtype.BoolOID, HasDefault: true, IsNotNull: false}
+	// supported type (has default, nullable) -> null, test vals
+	col = query.Column{DataType: pgtype.BoolOID, HasDefault: true}
 	expected = []interface{}{nil, true, false, generate.DEFAULT_VAL}
 	gen = generate.NewValueGenerator(col)
-	assert.Equalf(t, expected, gen.TestVals(), "default, nullable")
+	assert.Equalf(t, expected, gen.TestVals(), "supported type (has default, nullable)")
 }

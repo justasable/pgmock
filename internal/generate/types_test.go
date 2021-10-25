@@ -140,3 +140,35 @@ func TestUUIDGenUniqueVal(t *testing.T) {
 	expected.Set("00000000-0000-0000-0000-000000000929")
 	testGenUniqueVal(t, "uuid", pgtype.UUIDOID, 2345, *expected)
 }
+
+func TestUnsupportedType(t *testing.T) {
+	// generated column
+	col := query.Column{Generated: query.GENERATED_STORED}
+	gen := generate.NewValueGenerator(col)
+	assert.Equal(t, []interface{}{generate.DEFAULT_VAL}, gen.TestVals())
+	assert.Equal(t, generate.DEFAULT_VAL, gen.UniqueVal(0))
+
+	// unsupported type (no default, not null) -> cannot generate
+	col = query.Column{IsNotNull: true}
+	gen = generate.NewValueGenerator(col)
+	assert.Nil(t, gen)
+
+	// unsupported type (no default, nullable) --> null, then null, null...
+	col = query.Column{}
+	gen = generate.NewValueGenerator(col)
+	assert.Equal(t, []interface{}{nil}, gen.TestVals())
+	assert.Equal(t, nil, gen.UniqueVal(1))
+
+	// unsupported type (has default, not null) -> default, then default, default...
+	col = query.Column{HasDefault: true, IsNotNull: true}
+	gen = generate.NewValueGenerator(col)
+	assert.Equal(t, []interface{}{generate.DEFAULT_VAL}, gen.TestVals())
+	assert.Equal(t, generate.DEFAULT_VAL, gen.UniqueVal(0))
+
+	// unsupported type (has default, nullable) -> nil, default, then default, default...
+	col = query.Column{HasDefault: true, IsNotNull: false}
+	gen = generate.NewValueGenerator(col)
+	assert.Equal(t, []interface{}{nil, generate.DEFAULT_VAL}, gen.TestVals())
+	assert.Equal(t, generate.DEFAULT_VAL, gen.UniqueVal(0))
+
+}

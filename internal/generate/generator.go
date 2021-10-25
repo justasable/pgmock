@@ -5,6 +5,12 @@ import (
 	"github.com/justasable/pgmock/internal/query"
 )
 
+// ValueGenerator generates test values and additional values unique to test value
+type ValueGenerator interface {
+	TestVals() []interface{}
+	UniqueVal(int) interface{}
+}
+
 func NewValueGenerator(c query.Column) ValueGenerator {
 	// generated columns
 	if c.Generated == query.GENERATED_STORED {
@@ -31,16 +37,25 @@ func NewValueGenerator(c query.Column) ValueGenerator {
 	case pgtype.UUIDOID:
 		ret.ValueGenerator = uuidGen{}
 	default:
-		// unsupported type (no default) -> we're unable to generate anything
-		if !c.HasDefault {
+		// unsupported type (no default, not null) -> we're unable to generate anything
+		if !c.HasDefault && c.IsNotNull {
 			return nil
 		}
 
-		// unsupported type (default) -> nil, default...
-		return compositeGen{
-			prependVals:    []interface{}{nil},
-			ValueGenerator: defaultGen{},
+		// unsupported type (no default, nullable) -> null, null, null...
+		if !c.HasDefault && !c.IsNotNull {
+			return nullGen{}
 		}
+
+		// unsupported type (has default, not null) -> default, default...
+		if c.IsNotNull {
+			return defaultGen{}
+		}
+
+		// unsupported type (has default, nullable) -> null, default, default...
+		ret.prependVals = []interface{}{nil}
+		ret.ValueGenerator = defaultGen{}
+		return ret
 	}
 
 	/*
