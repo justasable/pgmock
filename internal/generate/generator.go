@@ -1,76 +1,65 @@
 package generate
 
 import (
-	"errors"
-
 	"github.com/jackc/pgtype"
+	"github.com/justasable/pgmock/internal/query"
 )
 
-var ErrUnsupportedType = errors.New("unsupported data type")
+func NewValueGenerator(c query.Column) ValueGenerator {
+	// generated columns
+	if c.Generated == query.GENERATED_STORED {
+		return defaultGen{}
+	}
 
-type Generator struct {
-	defaultVals []interface{}
-	uniqueGen   func(n int) interface{}
-}
-
-func NewGenerator(oid pgtype.OID) (Generator, error) {
-	g := Generator{}
-	switch oid {
+	// data type
+	var ret compositeGen
+	switch c.DataType {
 	case pgtype.Int4OID:
-		for _, val := range IntegerDefaults() {
-			g.defaultVals = append(g.defaultVals, val)
-		}
-		g.uniqueGen = func(n int) interface{} { return IntegerUnique(n) }
+		ret.ValueGenerator = integerGen{}
 	case pgtype.BoolOID:
-		for _, val := range BooleanDefaults() {
-			g.defaultVals = append(g.defaultVals, val)
-		}
-		g.uniqueGen = func(n int) interface{} { return BooleanUnique(n) }
+		ret.ValueGenerator = booleanGen{}
 	case pgtype.NumericOID:
-		for _, val := range NumericDefaults() {
-			g.defaultVals = append(g.defaultVals, val)
-		}
-		g.uniqueGen = func(n int) interface{} { return NumericUnique(n) }
+		ret.ValueGenerator = numericGen{}
 	case pgtype.TextOID:
-		for _, val := range TextDefaults() {
-			g.defaultVals = append(g.defaultVals, val)
-		}
-		g.uniqueGen = func(n int) interface{} { return TextUnique(n) }
+		ret.ValueGenerator = textGen{}
 	case pgtype.TimestamptzOID:
-		for _, val := range TimestampTZDefaults() {
-			g.defaultVals = append(g.defaultVals, val)
-		}
-		g.uniqueGen = func(n int) interface{} { return TimestamptTZUnique(n) }
+		ret.ValueGenerator = timestampTZGen{}
 	case pgtype.DateOID:
-		for _, val := range DateDefaults() {
-			g.defaultVals = append(g.defaultVals, val)
-		}
-		g.uniqueGen = func(n int) interface{} { return DateUnique(n) }
+		ret.ValueGenerator = dateGen{}
 	case pgtype.ByteaOID:
-		for _, val := range ByteDefaults() {
-			g.defaultVals = append(g.defaultVals, val)
-		}
-		g.uniqueGen = func(n int) interface{} { return ByteUnique(n) }
+		ret.ValueGenerator = byteGen{}
 	case pgtype.UUIDOID:
-		for _, val := range UUIDDefaults() {
-			g.defaultVals = append(g.defaultVals, val)
-		}
-		g.uniqueGen = func(n int) interface{} { return UUIDUnique(n) }
+		ret.ValueGenerator = uuidGen{}
 	default:
-		return g, ErrUnsupportedType
+		// unsupported type (no default) -> we're unable to generate anything
+		if !c.HasDefault {
+			return nil
+		}
+
+		// unsupported type (default) -> nil, default...
+		return compositeGen{
+			prependVals:    []interface{}{nil},
+			ValueGenerator: defaultGen{},
+		}
 	}
 
-	return g, nil
-}
+	/*
+		Supported Types
 
-func (g Generator) ValueForRow(n int) interface{} {
-	if n < len(g.defaultVals) {
-		return g.defaultVals[n]
+		Depending on column constraints we prepend/append values, the order is somewhat important
+		nil comes first, our generated test values second, then any database default value last
+
+		The reason is eg in a bool DEFAULT TRUE UNIQUE column, default val can clash with our test values
+		causing an error and preventing other test values from being inserted. Hence this order delays any
+		potential errors up to the inevitable moment, creating a greater chance for successful row generation
+	*/
+
+	if !c.IsNotNull {
+		ret.prependVals = []interface{}{nil}
+	}
+	if c.HasDefault {
+		ret.appendVals = []interface{}{DEFAULT_VAL}
 	}
 
-	return g.uniqueGen(n - len(g.defaultVals))
-}
-
-func (g Generator) Done(n int) bool {
-	return n >= len(g.defaultVals)
+	return ret
 }
