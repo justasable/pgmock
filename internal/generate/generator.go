@@ -13,7 +13,8 @@ type DataGenerator interface {
 
 func NewDataGenerator(c query.Column) DataGenerator {
 	// generated columns
-	if c.Generated == query.GENERATED_STORED {
+	if c.Generated == query.GENERATED_STORED ||
+		c.Identity == query.IDENTITY_ALWAYS {
 		return defaultGen{}
 	}
 
