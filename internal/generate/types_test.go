@@ -148,8 +148,8 @@ func TestUnsupportedType(t *testing.T) {
 	// generated column
 	col := query.Column{Generated: query.GENERATED_STORED}
 	gen := generate.NewDataGenerator(col)
-	assert.Equal(t, []interface{}{generate.DEFAULT_VAL}, gen.TestVals())
-	assert.Equal(t, generate.DEFAULT_VAL, gen.UniqueVal(0))
+	assert.Equal(t, []interface{}{generate.DefaultValType{}}, gen.TestVals())
+	assert.Equal(t, generate.DefaultValType{}, gen.UniqueVal(0))
 
 	// unsupported type (no default, not null) -> cannot generate
 	col = query.Column{IsNotNull: true}
@@ -165,13 +165,13 @@ func TestUnsupportedType(t *testing.T) {
 	// unsupported type (has default, not null) -> default, then default, default...
 	col = query.Column{HasDefault: true, IsNotNull: true}
 	gen = generate.NewDataGenerator(col)
-	assert.Equal(t, []interface{}{generate.DEFAULT_VAL}, gen.TestVals())
-	assert.Equal(t, generate.DEFAULT_VAL, gen.UniqueVal(0))
+	assert.Equal(t, []interface{}{generate.DefaultValType{}}, gen.TestVals())
+	assert.Equal(t, generate.DefaultValType{}, gen.UniqueVal(0))
 
 	// unsupported type (has default, nullable) -> nil, default, then default, default...
 	col = query.Column{HasDefault: true, IsNotNull: false}
 	gen = generate.NewDataGenerator(col)
-	assert.Equal(t, []interface{}{nil, generate.DEFAULT_VAL}, gen.TestVals())
-	assert.Equal(t, generate.DEFAULT_VAL, gen.UniqueVal(0))
+	assert.Equal(t, []interface{}{nil, generate.DefaultValType{}}, gen.TestVals())
+	assert.Equal(t, generate.DefaultValType{}, gen.UniqueVal(0))
 
 }

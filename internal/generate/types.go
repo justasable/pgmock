@@ -124,18 +124,16 @@ func (u uuidGen) UniqueVal(n int) interface{} {
 	return *ret
 }
 
-type DefaultValType string
-
-const DEFAULT_VAL DefaultValType = "DEFAULT"
+type DefaultValType struct{}
 
 type defaultGen struct{}
 
 func (u defaultGen) TestVals() []interface{} {
-	return []interface{}{DEFAULT_VAL}
+	return []interface{}{DefaultValType{}}
 }
 
 func (u defaultGen) UniqueVal(_ int) interface{} {
-	return DEFAULT_VAL
+	return DefaultValType{}
 }
 
 type nullGen struct{}
