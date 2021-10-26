@@ -2,10 +2,7 @@
 package generate
 
 import (
-	"context"
-	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/justasable/pgmock/internal/query"
@@ -13,90 +10,67 @@ import (
 
 // GenerateData generates mock data for all given tables in the db
 func GenerateData(conn *pgx.Conn) error {
+	// fetch all tables
 	tt, err := query.Tables(conn)
 	if err != nil {
 		return err
 	}
 
-	// first pass: generate rows for column types
+	// generate data for each table
 	for _, t := range tt {
-		err := generateForTableValues(conn, &t)
+		err := generateDataForTable(conn, t)
 		if err != nil {
-			return err
+			fmt.Println(err)
 		}
 	}
 
 	return nil
 }
 
-func generateForTableValues(conn *pgx.Conn, table *query.Table) error {
-	// create task for each column
-	var tt []*task
-	for i := 0; i < len(table.Columns); i++ {
-		t, err := NewTask(&table.Columns[i])
-		if err != nil {
-			return err
-		} else if t == nil {
-			continue
+// generateDataForTable generates rows of data until all column testvals are exhausted
+// errors are not fatal, row data may still have been successfully generated
+func generateDataForTable(conn *pgx.Conn, t query.Table) error {
+	// generate column tasks
+	var tasks []*colTask
+	for _, col := range t.Columns {
+		generator := NewDataGenerator(col)
+		if generator == nil {
+			return nil // can't generate data for this column, skip table
 		}
-		tt = append(tt, t)
+
+		aTask := newColumnTask(col, generator)
+		tasks = append(tasks, aTask)
 	}
 
-	// generate data row until all tasks finished
+	// iterate through column tasks until done
 	var errs []error
 	for {
-		var finished bool = true
-		var colNames []string
-		var values []interface{}
-
-		// gather values for row
-		for _, t := range tt {
-			// check if we skip current value gen i.e. default val
-			if t.ShouldSkip() {
-				t.Advance()
-				continue
+		// exit if all test vals exhausted
+		var done bool = true
+		for _, aTask := range tasks {
+			if !aTask.done() {
+				done = false
+				break
 			}
-
-			colNames = append(colNames, t.column.Name)
-			values = append(values, t.CurrentVal())
-
-			if !t.Finished() {
-				finished = false
-			}
-			t.Advance()
 		}
-
-		if finished {
+		if done {
 			break
 		}
 
-		// build db command
-		var placeholders []string
-		for idx := range values {
-			placeholders = append(placeholders, fmt.Sprintf("$%d", idx+1))
+		// insert data
+		builder := NewQueryBuilder(t.Namespace, t.Name)
+		for _, task := range tasks {
+			builder.AddColumnData(task.column.Name, task.currentVal())
+			task.advance()
 		}
-		cmd := fmt.Sprintf(
-			"INSERT INTO %s.%s (%s) VALUES (%s)",
-			table.Namespace, table.Name,
-			strings.Join(colNames, ","),
-			strings.Join(placeholders, ","),
-		)
-
-		// insert row
-		_, err := conn.Exec(context.Background(), cmd, values...)
+		err := builder.RunQuery(conn)
 		if err != nil {
-			// we don't return on this error as some unforseen constraints may prevent
-			// row insert but we can still continue with the next row
 			errs = append(errs, err)
 		}
 	}
 
 	if len(errs) > 0 {
-		var errStr string
-		for _, err := range errs {
-			errStr += fmt.Sprintf("%s\n", err)
-		}
-		return errors.New(errStr)
+		return fmt.Errorf("errors inserting data for table %s.%s: %+v", t.Namespace, t.Name, errs)
 	}
 
 	return nil

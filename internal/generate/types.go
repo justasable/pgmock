@@ -8,125 +8,158 @@ import (
 	"github.com/jackc/pgtype"
 )
 
-func IntegerDefaults() []int {
-	return []int{0, 1, -1, 2147483647, -2147483648}
+type integerGen struct{}
+
+func (i integerGen) TestVals() []interface{} {
+	return []interface{}{0, 1, -1, 2147483647, -2147483648}
 }
 
-func IntegerUnique(num int) int {
-	return 100 + num
+func (i integerGen) UniqueVal(n int) interface{} {
+	return 100 + n
 }
 
-func BooleanDefaults() []bool {
-	return []bool{false, true}
+type booleanGen struct{}
+
+func (b booleanGen) TestVals() []interface{} {
+	return []interface{}{true, false}
 }
 
-func BooleanUnique(idx int) bool {
-	return idx%2 != 0
+func (b booleanGen) UniqueVal(_ int) interface{} {
+	return nil
 }
 
-func NumericDefaults() []pgtype.Numeric {
+type numericGen struct{}
+
+func (n numericGen) TestVals() []interface{} {
 	max := new(big.Int).Exp(big.NewInt(10), big.NewInt(147454), nil)
 	max.Add(max, big.NewInt(1))
 	min := new(big.Int).Neg(max)
 
-	return []pgtype.Numeric{
-		{Int: big.NewInt(0), Status: pgtype.Present},
-		{Int: big.NewInt(123), Exp: -2, Status: pgtype.Present},
-		{Int: big.NewInt(-123), Exp: -2, Status: pgtype.Present},
-		{Status: pgtype.Present, NaN: true},
-		{Int: max, Exp: -16383, Status: pgtype.Present},
-		{Int: min, Exp: -16383, Status: pgtype.Present},
-	}
-
-}
-
-func NumericUnique(num int) pgtype.Numeric {
-	n := pgtype.Numeric{}
-	n.Set(fmt.Sprintf("%d.%d", num, num))
-	return n
-}
-
-func TextDefaults() []string {
-	return []string{"hello world", "3?!-+@.(\x01)ñ水불ツ😂"}
-}
-
-func TextUnique(num int) string {
-	return fmt.Sprintf("unique_%d", num)
-}
-
-func TimestampTZDefaults() []pgtype.Timestamptz {
-	// create normal timestamptz i.e. 1991-11-25 12:34:56.123456+07
-	tz, _ := time.Parse(time.RFC3339Nano, "1991-11-25T06:34:56.123456+01:00")
-
-	// create pg min range timestamptz i.e. 4714-11-24 00:22:00+00:22 BC
-	// i.e. []byte{1, 255, 255, 255, 221, 94, 237, 229, 0, 0, 0, 0, 0, 0, 82}
-	pgMin := new(time.Time)
-	pgMin.UnmarshalBinary([]byte{1, 255, 255, 255, 221, 94, 237, 229, 0, 0, 0, 0, 0, 0, 82})
-
-	// create pg max range timestamp i.e. 294276-12-31 23:59:59.999999+00
-	// i.e. []byte{1, 0, 0, 8, 114, 43, 196, 208, 255, 59, 154, 198, 24, 0, 60}
-	pgMax := new(time.Time)
-	pgMax.UnmarshalBinary([]byte{1, 0, 0, 8, 114, 43, 196, 208, 255, 59, 154, 198, 24, 0, 60})
-
-	return []pgtype.Timestamptz{
-		{Time: tz.UTC(), Status: pgtype.Present},
-		{Time: (*pgMin).UTC(), Status: pgtype.Present},
-		{Time: (*pgMax).UTC(), Status: pgtype.Present},
-		{Status: pgtype.Present, InfinityModifier: pgtype.Infinity},
-		{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity},
+	return []interface{}{
+		pgtype.Numeric{Int: big.NewInt(0), Status: pgtype.Present},
+		pgtype.Numeric{Int: big.NewInt(123), Exp: -2, Status: pgtype.Present},
+		pgtype.Numeric{Int: big.NewInt(-123), Exp: -2, Status: pgtype.Present},
+		pgtype.Numeric{Status: pgtype.Present, NaN: true},
+		pgtype.Numeric{Int: max, Exp: -16383, Status: pgtype.Present},
+		pgtype.Numeric{Int: min, Exp: -16383, Status: pgtype.Present},
 	}
 }
 
-func TimestamptTZUnique(num int) pgtype.Timestamptz {
-	tz, _ := time.Parse(time.RFC3339Nano, "2000-01-02T01:23:45.123456+00:00")
-	tz = tz.AddDate(num, 0, 0).UTC()
-	return pgtype.Timestamptz{Time: tz, Status: pgtype.Present}
+func (n numericGen) UniqueVal(idx int) interface{} {
+	num := pgtype.Numeric{}
+	num.Set(fmt.Sprintf("%d.%d", idx, idx))
+	return num
 }
 
-func DateDefaults() []pgtype.Date {
-	t1, _ := time.Parse("2006-01-02", "1991-11-11")
-	t2, _ := time.Parse("2006-01-02", "0001-11-24")
-	t2 = t2.AddDate(-4714, 0, 0)
-	t3, _ := time.Parse("2006-01-02", "0001-12-31")
-	t3 = t3.AddDate(5874896, 0, 0)
+type textGen struct{}
 
-	return []pgtype.Date{
-		{Time: t1, Status: pgtype.Present},
-		{Time: t2, Status: pgtype.Present},
-		{Time: t3, Status: pgtype.Present},
-		{Status: pgtype.Present, InfinityModifier: pgtype.Infinity},
-		{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity},
+func (t textGen) TestVals() []interface{} {
+	return []interface{}{"hello world", "3?!-+@.(\x01)ñ水불ツ😂"}
+}
+
+func (t textGen) UniqueVal(n int) interface{} {
+	return fmt.Sprintf("unique_%d", n)
+}
+
+type timestampTZGen struct{}
+
+func (t timestampTZGen) TestVals() []interface{} {
+	return []interface{}{
+		pgtype.Timestamptz{Time: time.Date(1991, 11, 25, 5, 34, 56, 123456000, time.UTC), Status: pgtype.Present},
+		pgtype.Timestamptz{Time: time.Date(-4713, 11, 24, 0, 0, 0, 0, time.UTC), Status: pgtype.Present},
+		pgtype.Timestamptz{Time: time.Date(294276, 12, 31, 23, 59, 59, 999999000, time.UTC), Status: pgtype.Present},
+		pgtype.Timestamptz{Status: pgtype.Present, InfinityModifier: pgtype.Infinity},
+		pgtype.Timestamptz{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity},
 	}
 }
 
-func DateUnique(num int) pgtype.Date {
-	t1, _ := time.Parse("2006-01-02", "2000-01-02")
-	t1 = t1.AddDate(num, 0, 0)
-	return pgtype.Date{Time: t1, Status: pgtype.Present}
+func (t timestampTZGen) UniqueVal(n int) interface{} {
+	return pgtype.Timestamptz{Time: time.Date(2000+n, 1, 2, 1, 23, 45, 123456000, time.UTC), Status: pgtype.Present}
 }
 
-func ByteDefaults() []pgtype.Bytea {
-	return []pgtype.Bytea{
-		{Status: pgtype.Present, Bytes: []byte("hello")},
-		{Status: pgtype.Present, Bytes: []byte("mañana €5,90")},
-		{Status: pgtype.Present, Bytes: []byte{0}},
+type dateGen struct{}
+
+func (d dateGen) TestVals() []interface{} {
+	return []interface{}{
+		pgtype.Date{Time: time.Date(1991, 11, 11, 0, 0, 0, 0, time.UTC), Status: pgtype.Present},
+		pgtype.Date{Time: time.Date(-4713, 11, 24, 0, 0, 0, 0, time.UTC), Status: pgtype.Present},
+		pgtype.Date{Time: time.Date(5874897, 12, 31, 0, 0, 0, 0, time.UTC), Status: pgtype.Present},
+		pgtype.Date{Status: pgtype.Present, InfinityModifier: pgtype.Infinity},
+		pgtype.Date{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity},
 	}
 }
-func ByteUnique(num int) pgtype.Bytea {
-	return pgtype.Bytea{Status: pgtype.Present, Bytes: []byte(fmt.Sprintf("unique_%d", num))}
+
+func (d dateGen) UniqueVal(n int) interface{} {
+	return pgtype.Date{Time: time.Date(2000+n, 1, 2, 0, 0, 0, 0, time.UTC), Status: pgtype.Present}
 }
 
-func UUIDDefaults() []pgtype.UUID {
-	return []pgtype.UUID{
+type byteGen struct{}
+
+func (b byteGen) TestVals() []interface{} {
+	return []interface{}{
+		pgtype.Bytea{Status: pgtype.Present, Bytes: []byte("hello")},
+		pgtype.Bytea{Status: pgtype.Present, Bytes: []byte("mañana €5,90")},
+		pgtype.Bytea{Status: pgtype.Present, Bytes: []byte{0}},
+	}
+}
+
+func (b byteGen) UniqueVal(n int) interface{} {
+	return pgtype.Bytea{Status: pgtype.Present, Bytes: []byte(fmt.Sprintf("unique_%d", n))}
+}
+
+type uuidGen struct{}
+
+func (u uuidGen) TestVals() []interface{} {
+	return []interface{}{
 		// "00010203-0405-0607-0809-0a0b0c0d0e0f"
-		{Bytes: [16]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, Status: pgtype.Present},
+		pgtype.UUID{Bytes: [16]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, Status: pgtype.Present},
 		// "00000000-0000-0000-0000-000000000000"
-		{Bytes: [16]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, Status: pgtype.Present},
+		pgtype.UUID{Bytes: [16]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, Status: pgtype.Present},
 	}
 }
 
-func UUIDUnique(num int) pgtype.UUID {
+func (u uuidGen) UniqueVal(n int) interface{} {
 	ret := new(pgtype.UUID)
-	ret.Set(fmt.Sprintf("%0.32x", num))
+	ret.Set(fmt.Sprintf("%0.32x", n+1))
 	return *ret
+}
+
+type DefaultValType struct{}
+
+type defaultGen struct{}
+
+func (u defaultGen) TestVals() []interface{} {
+	return []interface{}{DefaultValType{}}
+}
+
+func (u defaultGen) UniqueVal(_ int) interface{} {
+	return DefaultValType{}
+}
+
+type nullGen struct{}
+
+func (n nullGen) TestVals() []interface{} {
+	return []interface{}{nil}
+}
+
+func (n nullGen) UniqueVal(_ int) interface{} {
+	return nil
+}
+
+type compositeGen struct {
+	prependVals []interface{}
+	appendVals  []interface{}
+	generator   DataGenerator
+}
+
+func (c compositeGen) TestVals() []interface{} {
+	var ret []interface{}
+	ret = append(ret, c.prependVals...)
+	ret = append(ret, c.generator.TestVals()...)
+	ret = append(ret, c.appendVals...)
+	return ret
+}
+
+func (c compositeGen) UniqueVal(n int) interface{} {
+	return c.generator.UniqueVal(n)
 }

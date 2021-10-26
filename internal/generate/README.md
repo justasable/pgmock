@@ -2,18 +2,21 @@
 
 Generate provides fake data in a deterministic way
 
-## Priority
-1. `NULL`
-2. `PG Default Val`
-3. [Values from Default Values Table](#default-values)
+## Data Generation Priority
+1. `NULL` value
+2. [Values from Test Values Table](#test-values)
+3. database provided `DEFAULT` value
 4. [Values from Unique Values Table](#unique-values)
 
-## Default Values
+The reason for this order is in special edge cases eg  `boolean DEFAULT TRUE UNIQUE` column, default val can clash with our test values causing an error and preventing other test values from being inserted. Hence this order delays any potential errors up to the inevitable moment, creating a greater chance for successful row generation.
+
+## Test Values
+The total set of Test Values for a data type includes `NULL` and `DEFAULT` value where applicable to column
 
 | Data Type   | Values                                                                                      |
 | ----------- | ------------------------------------------------------------------------------------------- |
 | integer     | 0, 1, -1, 2147483647, -2147483648                                                           |
-| bool        | false, true                                                                                 |
+| bool        | true, false                                                                                 |
 | numeric     | 0.00, 1.23, -1.23, NaN                                                                      |
 |             | + 1000___.___0001 i.e. 131072 digits before decimal point, 16383 digits after decimal point |
 |             | - 1000___.___0001 i.e. 131072 digits before decimal point, 16383 digits after decimal point |
@@ -27,16 +30,16 @@ Generate provides fake data in a deterministic way
 
 ## Unique Values
 
-| Data Type   | Values                                  |
-| ----------- | --------------------------------------- |
-| integer     | 100 + `num`                             |
-| bool        | `num` even false, `num` odd true        |
-| numeric     | `num`.`num`                             |
-| text        | unique_`num`                            |
-| timestamptz | (2000 + `num`)-01-02 01:23:45.123456+00 |
-| date        | (2000 + `num`)-01-02                    |
-| bytea       | unique_`num`::bytea                     |
-| uuid        | 00000000-0000-0000-0...`num`::hex       |
+| Data Type   | Values                                         |
+| ----------- | ---------------------------------------------- |
+| integer     | 100, 101, 102...                               |
+| bool        | nil                                            |
+| numeric     | 0.0, 1.1, 2.2...                               |
+| text        | unique_0, unique_1, unique_2...                |
+| timestamptz | (2000 + `0, 1, 2...`)-01-02 01:23:45.123456+00 |
+| date        | (2000 + `0, 1, 2...`)-01-02                    |
+| bytea       | unique_`0, 1, 2...`::bytea                     |
+| uuid        | 00000000-0000-0000-0...`1, 2, 3...`::hex       |
 
 ## Special Notes
 
