@@ -39,7 +39,7 @@ The total set of Test Values for a data type includes `NULL` and `DEFAULT` value
 | timestamptz | (2000 + `0, 1, 2...`)-01-02 01:23:45.123456+00 |
 | date        | (2000 + `0, 1, 2...`)-01-02                    |
 | bytea       | unique_`0, 1, 2...`::bytea                     |
-| uuid        | 00000000-0000-0000-0...`0, 1, 2...`::hex       |
+| uuid        | 00000000-0000-0000-0...`1, 2, 3...`::hex       |
 
 ## Special Notes
 

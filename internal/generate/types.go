@@ -120,7 +120,7 @@ func (u uuidGen) TestVals() []interface{} {
 
 func (u uuidGen) UniqueVal(n int) interface{} {
 	ret := new(pgtype.UUID)
-	ret.Set(fmt.Sprintf("%0.32x", n))
+	ret.Set(fmt.Sprintf("%0.32x", n+1))
 	return *ret
 }
 

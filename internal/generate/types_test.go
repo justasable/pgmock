@@ -138,7 +138,10 @@ func TestUUIDGenTestVals(t *testing.T) {
 func TestUUIDGenUniqueVal(t *testing.T) {
 	expected := new(pgtype.UUID)
 	expected.Set("00000000-0000-0000-0000-000000000929")
-	testGenUniqueVal(t, "uuid", pgtype.UUIDOID, 2345, *expected)
+	testGenUniqueVal(t, "uuid", pgtype.UUIDOID, 2344, *expected)
+
+	expected.Set("00000000-0000-0000-0000-000000000001")
+	testGenUniqueVal(t, "uuid", pgtype.UUIDOID, 0, *expected)
 }
 
 func TestUnsupportedType(t *testing.T) {
