@@ -151,17 +151,17 @@ func (n nullGen) UniqueVal(_ int) interface{} {
 type compositeGen struct {
 	prependVals []interface{}
 	appendVals  []interface{}
-	ValueGenerator
+	generator   DataGenerator
 }
 
 func (c compositeGen) TestVals() []interface{} {
 	var ret []interface{}
 	ret = append(ret, c.prependVals...)
-	ret = append(ret, c.ValueGenerator.TestVals()...)
+	ret = append(ret, c.generator.TestVals()...)
 	ret = append(ret, c.appendVals...)
 	return ret
 }
 
 func (c compositeGen) UniqueVal(n int) interface{} {
-	return c.ValueGenerator.UniqueVal(n)
+	return c.generator.UniqueVal(n)
 }

@@ -5,13 +5,13 @@ import (
 	"github.com/justasable/pgmock/internal/query"
 )
 
-// ValueGenerator generates test values and additional values unique to test value
-type ValueGenerator interface {
+// DataGenerator generates test values and additional values unique to test value
+type DataGenerator interface {
 	TestVals() []interface{}
 	UniqueVal(int) interface{}
 }
 
-func NewValueGenerator(c query.Column) ValueGenerator {
+func NewDataGenerator(c query.Column) DataGenerator {
 	// generated columns
 	if c.Generated == query.GENERATED_STORED {
 		return defaultGen{}
@@ -21,21 +21,21 @@ func NewValueGenerator(c query.Column) ValueGenerator {
 	var ret compositeGen
 	switch c.DataType {
 	case pgtype.Int4OID:
-		ret.ValueGenerator = integerGen{}
+		ret.generator = integerGen{}
 	case pgtype.BoolOID:
-		ret.ValueGenerator = booleanGen{}
+		ret.generator = booleanGen{}
 	case pgtype.NumericOID:
-		ret.ValueGenerator = numericGen{}
+		ret.generator = numericGen{}
 	case pgtype.TextOID:
-		ret.ValueGenerator = textGen{}
+		ret.generator = textGen{}
 	case pgtype.TimestamptzOID:
-		ret.ValueGenerator = timestampTZGen{}
+		ret.generator = timestampTZGen{}
 	case pgtype.DateOID:
-		ret.ValueGenerator = dateGen{}
+		ret.generator = dateGen{}
 	case pgtype.ByteaOID:
-		ret.ValueGenerator = byteGen{}
+		ret.generator = byteGen{}
 	case pgtype.UUIDOID:
-		ret.ValueGenerator = uuidGen{}
+		ret.generator = uuidGen{}
 	default:
 		// unsupported type (no default, not null) -> we're unable to generate anything
 		if !c.HasDefault && c.IsNotNull {
@@ -54,7 +54,7 @@ func NewValueGenerator(c query.Column) ValueGenerator {
 
 		// unsupported type (has default, nullable) -> null, default, default...
 		ret.prependVals = []interface{}{nil}
-		ret.ValueGenerator = defaultGen{}
+		ret.generator = defaultGen{}
 		return ret
 	}
 

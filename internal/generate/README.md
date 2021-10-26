@@ -11,6 +11,7 @@ Generate provides fake data in a deterministic way
 The reason for this order is in special edge cases eg  `boolean DEFAULT TRUE UNIQUE` column, default val can clash with our test values causing an error and preventing other test values from being inserted. Hence this order delays any potential errors up to the inevitable moment, creating a greater chance for successful row generation.
 
 ## Test Values
+The total set of Test Values for a data type includes `NULL` and `DEFAULT` value where applicable to column
 
 | Data Type   | Values                                                                                      |
 | ----------- | ------------------------------------------------------------------------------------------- |

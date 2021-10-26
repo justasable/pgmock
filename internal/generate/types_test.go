@@ -15,7 +15,7 @@ import (
 // convenience function for testing simple data type test vals generation
 func testGenTestVals(t *testing.T, name string, dataType pgtype.OID, expected []interface{}) {
 	col := query.Column{DataType: dataType, IsNotNull: true}
-	gen := generate.NewValueGenerator(col)
+	gen := generate.NewDataGenerator(col)
 	got := gen.TestVals()
 
 	require.Lenf(t, got, len(expected), "length mismatch for %s", name)
@@ -27,7 +27,7 @@ func testGenTestVals(t *testing.T, name string, dataType pgtype.OID, expected []
 // convenience function for testing simple data type unique val generation
 func testGenUniqueVal(t *testing.T, name string, dataType pgtype.OID, count int, expected interface{}) {
 	col := query.Column{DataType: dataType, IsNotNull: true}
-	gen := generate.NewValueGenerator(col)
+	gen := generate.NewDataGenerator(col)
 	got := gen.UniqueVal(count)
 	assert.Equalf(t, expected, got, "%s unique val gen mismatch for count %d", name, count)
 }
@@ -144,30 +144,30 @@ func TestUUIDGenUniqueVal(t *testing.T) {
 func TestUnsupportedType(t *testing.T) {
 	// generated column
 	col := query.Column{Generated: query.GENERATED_STORED}
-	gen := generate.NewValueGenerator(col)
+	gen := generate.NewDataGenerator(col)
 	assert.Equal(t, []interface{}{generate.DEFAULT_VAL}, gen.TestVals())
 	assert.Equal(t, generate.DEFAULT_VAL, gen.UniqueVal(0))
 
 	// unsupported type (no default, not null) -> cannot generate
 	col = query.Column{IsNotNull: true}
-	gen = generate.NewValueGenerator(col)
+	gen = generate.NewDataGenerator(col)
 	assert.Nil(t, gen)
 
 	// unsupported type (no default, nullable) --> null, then null, null...
 	col = query.Column{}
-	gen = generate.NewValueGenerator(col)
+	gen = generate.NewDataGenerator(col)
 	assert.Equal(t, []interface{}{nil}, gen.TestVals())
 	assert.Equal(t, nil, gen.UniqueVal(1))
 
 	// unsupported type (has default, not null) -> default, then default, default...
 	col = query.Column{HasDefault: true, IsNotNull: true}
-	gen = generate.NewValueGenerator(col)
+	gen = generate.NewDataGenerator(col)
 	assert.Equal(t, []interface{}{generate.DEFAULT_VAL}, gen.TestVals())
 	assert.Equal(t, generate.DEFAULT_VAL, gen.UniqueVal(0))
 
 	// unsupported type (has default, nullable) -> nil, default, then default, default...
 	col = query.Column{HasDefault: true, IsNotNull: false}
-	gen = generate.NewValueGenerator(col)
+	gen = generate.NewDataGenerator(col)
 	assert.Equal(t, []interface{}{nil, generate.DEFAULT_VAL}, gen.TestVals())
 	assert.Equal(t, generate.DEFAULT_VAL, gen.UniqueVal(0))
 
