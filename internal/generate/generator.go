@@ -11,6 +11,8 @@ type DataGenerator interface {
 	UniqueVal(int) interface{}
 }
 
+// NewDataGenerator returns a DataGenerator that takes into account a columns
+// data type as well as any constraints
 func NewDataGenerator(c query.Column) DataGenerator {
 	// generated columns
 	if c.Generated == query.GENERATED_STORED ||
@@ -73,7 +75,8 @@ func NewDataGenerator(c query.Column) DataGenerator {
 	if !c.IsNotNull {
 		ret.prependVals = []interface{}{nil}
 	}
-	if c.HasDefault {
+	if c.HasDefault && c.DataType != pgtype.BoolOID {
+		// bool test vals are exhaustive, so we ignore any default value that may conflict
 		ret.appendVals = []interface{}{DEFAULT_VAL}
 	}
 

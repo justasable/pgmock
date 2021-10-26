@@ -1,93 +1,77 @@
 // package generate provides fake values of specified types
 package generate
 
-// // GenerateData generates mock data for all given tables in the db
-// func GenerateData(conn *pgx.Conn) error {
-// 	tt, err := query.Tables(conn)
-// 	if err != nil {
-// 		return err
-// 	}
+import (
+	"fmt"
 
-// 	// first pass: generate rows for column types
-// 	for _, t := range tt {
-// 		err := generateForTableValues(conn, &t)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
+	"github.com/jackc/pgx/v4"
+	"github.com/justasable/pgmock/internal/query"
+)
 
-// 	return nil
-// }
+// GenerateData generates mock data for all given tables in the db
+func GenerateData(conn *pgx.Conn) error {
+	// fetch all tables
+	tt, err := query.Tables(conn)
+	if err != nil {
+		return err
+	}
 
-// func generateForTableValues(conn *pgx.Conn, table *query.Table) error {
-// 	// create task for each column
-// 	var tt []*colTask
-// 	for i := 0; i < len(table.Columns); i++ {
-// 		t, err := newColTask(table.Columns[i])
-// 		if err != nil {
-// 			return err
-// 		} else if t == nil {
-// 			continue
-// 		}
-// 		tt = append(tt, t)
-// 	}
+	// generate data for each table
+	for _, t := range tt {
+		err := generateDataForTable(conn, t)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 
-// 	// generate data row until all tasks finished
-// 	var errs []error
-// 	for {
-// 		// check if all tasks finished
-// 		var finished bool = true
-// 		for _, t := range tt {
-// 			if !t.Done() {
-// 				finished = false
-// 			}
-// 		}
-// 		if finished {
-// 			break
-// 		}
+	return nil
+}
 
-// 		// gather values for row
-// 		var colNames []string
-// 		var values []interface{}
-// 		var placeholders []string
-// 		var defaultValCount int
-// 		for i, t := range tt {
-// 			colNames = append(colNames, t.column.Name)
-// 			if _, ok := t.CurrentVal().(defaultType); ok {
-// 				placeholders = append(placeholders, "DEFAULT")
-// 				defaultValCount++
-// 			} else {
-// 				placeholders = append(placeholders, fmt.Sprintf("$%d", i+1-defaultValCount))
-// 				values = append(values, t.CurrentVal())
-// 			}
+// generateDataForTable generates rows of data until all column testvals are exhausted
+// errors are not fatal, row data may still have been successfully generated
+func generateDataForTable(conn *pgx.Conn, t query.Table) error {
+	// generate column tasks
+	var tasks []*colTask
+	for _, col := range t.Columns {
+		generator := NewDataGenerator(col)
+		if generator == nil {
+			return nil // can't generate data for this column, skip table
+		}
 
-// 			t.Advance()
-// 		}
+		aTask := newColumnTask(col, generator)
+		tasks = append(tasks, aTask)
+	}
 
-// 		// build db command
-// 		cmd := fmt.Sprintf(
-// 			"INSERT INTO %s.%s (%s) VALUES (%s)",
-// 			table.Namespace, table.Name,
-// 			strings.Join(colNames, ","),
-// 			strings.Join(placeholders, ","),
-// 		)
+	// iterate through column tasks until done
+	var errs []error
+	for {
+		// exit if all test vals exhausted
+		var done bool = true
+		for _, aTask := range tasks {
+			if !aTask.done() {
+				done = false
+				break
+			}
+		}
+		if done {
+			break
+		}
 
-// 		// insert row
-// 		_, err := conn.Exec(context.Background(), cmd, values...)
-// 		if err != nil {
-// 			// we don't return on this error as some unforseen constraints may prevent
-// 			// row insert but we can still continue with the next row
-// 			errs = append(errs, err)
-// 		}
-// 	}
+		// insert data
+		builder := NewQueryBuilder(t.Namespace, t.Name)
+		for _, task := range tasks {
+			builder.AddColumnData(task.column.Name, task.currentVal())
+			task.advance()
+		}
+		err := builder.RunQuery(conn)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
 
-// 	if len(errs) > 0 {
-// 		var errStr string
-// 		for _, err := range errs {
-// 			errStr += fmt.Sprintf("%s\n", err)
-// 		}
-// 		return errors.New(errStr)
-// 	}
+	if len(errs) > 0 {
+		return fmt.Errorf("errors inserting data for table %s.%s: %+v", t.Namespace, t.Name, errs)
+	}
 
-// 	return nil
-// }
+	return nil
+}
