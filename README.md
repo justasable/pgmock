@@ -39,6 +39,12 @@ The reason for this order is because the database default value can clash with o
 | bytea       | 'hello'::bytea, 'mañana €5,90'::bytea, '\x00'                                               |
 | uuid        | 00010203-0405-0607-0809-0a0b0c0d0e0f, 00000000-0000-0000-0000-000000000000                  |
 
+| Constraint      | Values                           |
+| --------------- | -------------------------------- |
+| GENERATED       | (db default)                     |
+| IDENTITY ALWAYS | (db default)                     |
+| FOREIGN KEY     | (value from first generated row) |
+
 ## Unique Values
 
 | Data Type   | Values                                         |
