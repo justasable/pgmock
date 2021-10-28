@@ -16,39 +16,49 @@ func GenerateData(conn *pgx.Conn) error {
 		return err
 	}
 
-	// generate data for each table
-	for _, t := range tt {
-		err := generateDataForTable(conn, t)
-		if err != nil {
-			fmt.Println(err)
+	// keep attempting to generate data
+	var record = &recordSet{}
+	var count int
+	for {
+		// attempt for each table
+		for _, t := range tt {
+			if !record.HasData(t.ID) {
+				generateDataForTable(conn, record, t)
+			}
 		}
+
+		// exit condition
+		totalRecords := record.TotalRecords()
+		if count == totalRecords {
+			break
+		}
+		count = totalRecords
 	}
 
 	return nil
 }
 
-// generateDataForTable generates rows of data until all column testvals are exhausted
-// errors are not fatal, row data may still have been successfully generated
-func generateDataForTable(conn *pgx.Conn, t query.Table) error {
-	// generate column tasks
-	var tasks []*colTask
+// generateDataForTable attempts to generate rows of data until all column testvals are exhausted
+// errors are not propagated as various db constraints can cause them which are outside
+// our control, and we can still continue with data generation
+func generateDataForTable(conn *pgx.Conn, r *recordSet, t query.Table) {
+	// create column generators
+	var colGens []*generator
 	for _, col := range t.Columns {
-		generator := NewDataGenerator(col)
-		if generator == nil {
-			return nil // can't generate data for this column, skip table
+		gen := newGenerator(col, r)
+		// skip table if we're unable to generate data for a column
+		if gen == nil {
+			return
 		}
-
-		aTask := newColumnTask(col, generator)
-		tasks = append(tasks, aTask)
+		colGens = append(colGens, gen)
 	}
 
-	// iterate through column tasks until done
-	var errs []error
+	// iterate through column generators until done
 	for {
 		// exit if all test vals exhausted
 		var done bool = true
-		for _, aTask := range tasks {
-			if !aTask.done() {
+		for _, gen := range colGens {
+			if !gen.done() {
 				done = false
 				break
 			}
@@ -58,20 +68,31 @@ func generateDataForTable(conn *pgx.Conn, t query.Table) error {
 		}
 
 		// insert data
-		builder := NewQueryBuilder(t.Namespace, t.Name)
-		for _, task := range tasks {
-			builder.AddColumnData(task.column.Name, task.currentVal())
-			task.advance()
+		builder := newQueryBuilder(t.Namespace, t.Name)
+		for _, gen := range colGens {
+			builder.AddColumnData(gen.column.Name, gen.currentVal())
+			gen.advance()
 		}
-		err := builder.RunQuery(conn)
+		insertedVals, err := builder.RunQuery(conn)
 		if err != nil {
-			errs = append(errs, err)
+			fmt.Printf("%+v\n", err)
 		}
-	}
+		if len(colGens) != len(insertedVals) {
+			fmt.Printf("len mismatch inserted vals for table %s.%s\n", t.Namespace, t.Name)
+			continue
+		}
 
-	if len(errs) > 0 {
-		return fmt.Errorf("errors inserting data for table %s.%s: %+v", t.Namespace, t.Name, errs)
+		// add inserted vals to record
+		var crs []columnRecord
+		for i := 0; i < len(colGens); i++ {
+			cr := columnRecord{
+				Name:   colGens[i].column.Name,
+				Order:  colGens[i].column.Order,
+				IsPKey: colGens[i].column.Constraint == query.CONSTRAINT_PRIMARY_KEY,
+				Value:  insertedVals[i],
+			}
+			crs = append(crs, cr)
+		}
+		r.AddColumnRecords(t, crs)
 	}
-
-	return nil
 }
