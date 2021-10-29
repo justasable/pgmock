@@ -3,14 +3,14 @@ package pgtestvals
 
 import "github.com/jackc/pgtype"
 
-func TestVals(dataType pgtype.OID) []interface{} {
+func TestVals(dataType pgtype.OID, typeMod int) []interface{} {
 	switch dataType {
 	case pgtype.Int4OID:
 		return integerTestVals
 	case pgtype.BoolOID:
 		return boolTestVals
 	case pgtype.NumericOID:
-		return numericTestVals
+		return numericTestVals(typeMod)
 	case pgtype.TextOID:
 		return textTestVals
 	case pgtype.TimestamptzOID:
@@ -26,14 +26,14 @@ func TestVals(dataType pgtype.OID) []interface{} {
 	return nil
 }
 
-func UniqueFn(dataType pgtype.OID) func(int) interface{} {
+func UniqueFn(dataType pgtype.OID, typeMod int) func(int) interface{} {
 	switch dataType {
 	case pgtype.Int4OID:
 		return integerUniqueFn
 	case pgtype.BoolOID:
 		return boolUniqueFn
 	case pgtype.NumericOID:
-		return numericUniqueFn
+		return numericUniqueFn(typeMod)
 	case pgtype.TextOID:
 		return textUniqueFn
 	case pgtype.TimestamptzOID:

@@ -21,6 +21,7 @@ type Column struct {
 	FKTableID  pgtype.OID
 	FKColumns  []int
 	DataType   pgtype.OID
+	TypeMod    int
 }
 
 type Identity int8

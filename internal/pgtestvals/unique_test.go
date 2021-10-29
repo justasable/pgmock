@@ -12,7 +12,7 @@ import (
 
 // convenience function for testing simple data type unique val generation
 func testGenUniqueVal(t *testing.T, name string, dataType pgtype.OID, count int, expected interface{}) {
-	fn := pgtestvals.UniqueFn(dataType)
+	fn := pgtestvals.UniqueFn(dataType, -1)
 	got := fn(count)
 	assert.Equalf(t, expected, got, "%s unique val gen mismatch for count %d", name, count)
 }
@@ -24,8 +24,16 @@ func TestBooleanGenUniqueVal(t *testing.T) {
 }
 
 func TestNumericGenUniqueVal(t *testing.T) {
-	expected := pgtype.Numeric{Int: big.NewInt(7070), Exp: -2, Status: pgtype.Present}
-	testGenUniqueVal(t, "numeric", pgtype.NumericOID, 70, expected)
+	expected := pgtype.Numeric{Int: big.NewInt(100001), Exp: -3, Status: pgtype.Present}
+	testGenUniqueVal(t, "numeric", pgtype.NumericOID, 2, expected)
+}
+
+func TestNumericPrecisionScaleGenUniqueVal(t *testing.T) {
+	// numeric(5, 2) has attypmod of 327686
+	expected := pgtype.Numeric{Int: big.NewInt(99999), Exp: -2, Status: pgtype.Present}
+	fn := pgtestvals.UniqueFn(pgtype.NumericOID, 327686)
+	got := fn(99999)
+	assert.Equal(t, expected, got)
 }
 
 func TestTextGenUniqueVal(t *testing.T) {

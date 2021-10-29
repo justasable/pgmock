@@ -10,7 +10,6 @@ import (
 var (
 	integerTestVals      = []interface{}{0, 1, -1, 2147483647, -2147483648}
 	boolTestVals         = []interface{}{true, false}
-	numericTestVals      = numeric()
 	textTestVals         = []interface{}{"hello world", "3?!-+@.(\x01)ñ水불ツ😂"}
 	timestatmptzTestVals = timestamptz()
 	dateTestVals         = date()
@@ -18,19 +17,33 @@ var (
 	uuidTestVals         = uuid()
 )
 
-func numeric() []interface{} {
-	max := new(big.Int).Exp(big.NewInt(10), big.NewInt(147454), nil)
-	max.Add(max, big.NewInt(1))
-	min := new(big.Int).Neg(max)
-
-	return []interface{}{
+func numericTestVals(typeMod int) []interface{} {
+	var ret = []interface{}{
 		pgtype.Numeric{Int: big.NewInt(0), Status: pgtype.Present},
 		pgtype.Numeric{Int: big.NewInt(123), Exp: -2, Status: pgtype.Present},
 		pgtype.Numeric{Int: big.NewInt(-123), Exp: -2, Status: pgtype.Present},
 		pgtype.Numeric{Status: pgtype.Present, NaN: true},
-		pgtype.Numeric{Int: max, Exp: -16383, Status: pgtype.Present},
-		pgtype.Numeric{Int: min, Exp: -16383, Status: pgtype.Present},
 	}
+
+	if typeMod == -1 {
+		max := new(big.Int).Exp(big.NewInt(10), big.NewInt(147454), nil)
+		max.Add(max, big.NewInt(1))
+		min := new(big.Int).Neg(max)
+		ret = append(ret,
+			pgtype.Numeric{Int: max, Exp: -16383, Status: pgtype.Present},
+			pgtype.Numeric{Int: min, Exp: -16383, Status: pgtype.Present})
+	} else {
+		precision := ((typeMod - 4) >> 16) & 0xffff
+		scale := (typeMod - 4) & 0xffff
+		max := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(precision)), nil)
+		max.Sub(max, big.NewInt(1))
+		min := new(big.Int).Neg(max)
+		ret = append(ret,
+			pgtype.Numeric{Int: max, Exp: -int32(scale), Status: pgtype.Present},
+			pgtype.Numeric{Int: min, Exp: -int32(scale), Status: pgtype.Present})
+	}
+
+	return ret
 }
 
 func timestamptz() []interface{} {

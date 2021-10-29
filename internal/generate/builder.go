@@ -56,9 +56,7 @@ func (b builder) RunQuery(conn *pgx.Conn) ([]interface{}, error) {
 	for i := 0; i < totalColumns; i++ {
 		valuePtrs[i] = &values[i]
 	}
-	err := conn.
-		QueryRow(context.Background(), query, insertVals...).
-		Scan(valuePtrs...)
-
+	row := conn.QueryRow(context.Background(), query, insertVals...)
+	err := row.Scan(valuePtrs...)
 	return values, err
 }

@@ -13,7 +13,7 @@ import (
 
 // convenience function for testing simple data type test vals generation
 func testGenTestVals(t *testing.T, name string, dataType pgtype.OID, expected []interface{}) {
-	got := pgtestvals.TestVals(dataType)
+	got := pgtestvals.TestVals(dataType, -1)
 	require.Lenf(t, got, len(expected), "length mismatch for %s", name)
 	for i := 0; i < len(expected); i++ {
 		assert.Equalf(t, expected[i], got[i], "%s element at index %d does not match", name, i)
@@ -41,6 +41,21 @@ func TestNumericGenTestVals(t *testing.T) {
 		pgtype.Numeric{Int: min, Exp: -16383, Status: pgtype.Present},
 	}
 	testGenTestVals(t, "numeric", pgtype.NumericOID, expected)
+}
+
+func TestNumericPrecisionScaleGenTestVals(t *testing.T) {
+	// numeric(5, 2) has attypmod of 327686
+	expected := []interface{}{
+		pgtype.Numeric{Int: big.NewInt(0), Status: pgtype.Present},
+		pgtype.Numeric{Int: big.NewInt(123), Exp: -2, Status: pgtype.Present},
+		pgtype.Numeric{Int: big.NewInt(-123), Exp: -2, Status: pgtype.Present},
+		pgtype.Numeric{Status: pgtype.Present, NaN: true},
+		pgtype.Numeric{Int: big.NewInt(99999), Exp: -2, Status: pgtype.Present},
+		pgtype.Numeric{Int: big.NewInt(-99999), Exp: -2, Status: pgtype.Present},
+	}
+
+	got := pgtestvals.TestVals(pgtype.NumericOID, 327686)
+	assert.Equal(t, expected, got)
 }
 
 func TestTextGenTestVals(t *testing.T) {

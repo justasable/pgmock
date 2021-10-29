@@ -2,6 +2,7 @@ package pgtestvals
 
 import (
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/jackc/pgtype"
@@ -15,10 +16,22 @@ func boolUniqueFn(int) interface{} {
 	return nil
 }
 
-func numericUniqueFn(n int) interface{} {
-	num := pgtype.Numeric{}
-	num.Set(fmt.Sprintf("%d.%d", n, n))
-	return num
+func numericUniqueFn(typeMod int) func(int) interface{} {
+	// numeric
+	if typeMod == -1 {
+		return func(n int) interface{} {
+			num := big.NewInt(10)
+			num.Exp(num, big.NewInt(int64(n+n+1)), nil)
+			num.Add(num, big.NewInt(1))
+			return pgtype.Numeric{Int: num, Exp: -int32(n + 1), Status: pgtype.Present}
+		}
+	}
+
+	// numeric(p, s)
+	scale := (typeMod - 4) & 0xffff
+	return func(n int) interface{} {
+		return pgtype.Numeric{Int: big.NewInt(int64(n)), Exp: -int32(scale), Status: pgtype.Present}
+	}
 }
 
 func textUniqueFn(n int) interface{} {

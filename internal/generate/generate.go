@@ -4,12 +4,20 @@ package generate
 import (
 	"fmt"
 
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/justasable/pgmock/internal/query"
 )
 
 // GenerateData generates mock data for all given tables in the db
 func GenerateData(conn *pgx.Conn) error {
+	// due to numeric decoding issue for big numbers, we use raw bytes instead
+	conn.ConnInfo().RegisterDataType(pgtype.DataType{
+		Value: &pgtype.Bytea{},
+		Name:  "numeric",
+		OID:   pgtype.NumericOID,
+	})
+
 	// fetch all tables
 	tt, err := query.Tables(conn)
 	if err != nil {

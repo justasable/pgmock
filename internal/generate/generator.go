@@ -50,8 +50,8 @@ func newGenerator(c query.Column, r *recordSet) *generator {
 
 	// supported types
 	var ret = &generator{column: c, record: r}
-	ret.testVals = pgtestvals.TestVals(c.DataType)
-	ret.uniqueFn = pgtestvals.UniqueFn(c.DataType)
+	ret.testVals = pgtestvals.TestVals(c.DataType, c.TypeMod)
+	ret.uniqueFn = pgtestvals.UniqueFn(c.DataType, c.TypeMod)
 	if ret.testVals != nil && ret.uniqueFn != nil {
 		if !c.IsNotNull {
 			ret.testVals = append([]interface{}{nil}, ret.testVals...)
