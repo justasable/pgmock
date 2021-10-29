@@ -14,6 +14,8 @@ Note: currently in development with no guarantees for compatabilty between commi
 
 Uses [PGConnect](https://www.github.com/justasable/pgconnect)
 
+`PGMOCK_SETUP_SCRIPT` must be set for pgmock to rebuild database to known state
+
 ## Data Generation Policy
 1. `NULL` value
 2. [Values from Test Values Table](#test-values)
