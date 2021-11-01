@@ -3,7 +3,7 @@ module github.com/justasable/pgmock
 go 1.17
 
 require (
-	github.com/jackc/pgtype v1.8.1
+	github.com/jackc/pgtype v1.8.2-0.20211101122813-decb75f242b2
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/justasable/pgconnect v0.0.0-20211021120219-970bec80a751
 	github.com/stretchr/testify v1.7.0

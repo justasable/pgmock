@@ -37,6 +37,8 @@ func TestNumericGenTestVals(t *testing.T) {
 		pgtype.Numeric{Int: big.NewInt(123), Exp: -2, Status: pgtype.Present},
 		pgtype.Numeric{Int: big.NewInt(-123), Exp: -2, Status: pgtype.Present},
 		pgtype.Numeric{Status: pgtype.Present, NaN: true},
+		pgtype.Numeric{Status: pgtype.Present, InfinityModifier: pgtype.Infinity},
+		pgtype.Numeric{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity},
 		pgtype.Numeric{Int: max, Exp: -16383, Status: pgtype.Present},
 		pgtype.Numeric{Int: min, Exp: -16383, Status: pgtype.Present},
 	}

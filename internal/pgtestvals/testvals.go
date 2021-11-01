@@ -30,6 +30,8 @@ func numericTestVals(typeMod int) []interface{} {
 		max.Add(max, big.NewInt(1))
 		min := new(big.Int).Neg(max)
 		ret = append(ret,
+			pgtype.Numeric{Status: pgtype.Present, InfinityModifier: pgtype.Infinity},
+			pgtype.Numeric{Status: pgtype.Present, InfinityModifier: pgtype.NegativeInfinity},
 			pgtype.Numeric{Int: max, Exp: -16383, Status: pgtype.Present},
 			pgtype.Numeric{Int: min, Exp: -16383, Status: pgtype.Present})
 	} else {

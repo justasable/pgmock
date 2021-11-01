@@ -10,6 +10,8 @@ Given a schema, generate mock data in a way that
 
 Note: currently in development with no guarantees for compatabilty between commits
 
+Compatible wiht PG14 onwards
+
 ## Database Connection
 
 Uses [PGConnect](https://www.github.com/justasable/pgconnect)
@@ -30,7 +32,7 @@ The reason for this order is because the database default value can clash with o
 | -----------   | ------------------------------------------------------------------------------------------- |
 | integer       | 0, 1, -1, 2147483647, -2147483648                                                           |
 | bool          | true, false                                                                                 |
-| numeric       | 0.00, 1.23, -1.23, NaN                                                                      |
+| numeric       | 0.00, 1.23, -1.23, NaN, Infinity, -Infinity                                                 |
 |               | + 1000___.___0001 i.e. 131072 digits before decimal point, 16383 digits after decimal point |
 |               | - 1000___.___0001 i.e. 131072 digits before decimal point, 16383 digits after decimal point |
 | numeric(p, s) | 0.00, 1.23, -1.23, NaN, (max val), (min val)                                                |
