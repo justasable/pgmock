@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgtype"
 	"github.com/justasable/pgconnect"
 	"github.com/justasable/pgmock/internal/generate"
 )
@@ -30,13 +29,6 @@ func main() {
 	// connect and set config
 	conn, err := pgconnect.Connect()
 	checkErr(err)
-
-	// -- due to numeric decoding issue for big numbers, we use raw bytes instead
-	conn.ConnInfo().RegisterDataType(pgtype.DataType{
-		Value: &pgtype.Bytea{},
-		Name:  "numeric",
-		OID:   pgtype.NumericOID,
-	})
 
 	// generate data
 	err = generate.GenerateData(conn)
