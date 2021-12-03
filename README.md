@@ -14,11 +14,18 @@ Compatible wiht PG14 onwards
 
 ## Database Connection
 
-Uses [PGConnect](https://www.github.com/justasable/pgconnect)
+Specify schema file to generate pgmock data against with `--file` or `-f`
+Specify connection information with pg env vars:
 
-`PGMOCK_SETUP_SCRIPT` must be set for pgmock to rebuild database to known state
+- `PGHOST`
+- `PGPORT`
+- `PGDATABASE`
+- `PGUSER`
+- `PGPASSWORD`
+- `PGPASSFILE`
 
 ## Data Generation Policy
+
 1. `NULL` value
 2. [Values from Test Values Table](#test-values)
 3. database provided `DEFAULT` value (except boolean)
@@ -29,7 +36,7 @@ The reason for this order is because the database default value can clash with o
 ## Test Values
 
 | Data Type     | Values                                                                                      |
-| -----------   | ------------------------------------------------------------------------------------------- |
+| ------------- | ------------------------------------------------------------------------------------------- |
 | integer       | 0, 1, -1, 2147483647, -2147483648                                                           |
 | bool          | true, false                                                                                 |
 | numeric       | 0.00, 1.23, -1.23, NaN, Infinity, -Infinity                                                 |
@@ -74,7 +81,6 @@ The reason for this order is because the database default value can clash with o
 - two bytes: encompasses next 1, 920 characters. This covers almost all Latin alphabets and Greek, Cyrillic, Hebrew, Arabic etc and Combining Diacritic Marks
 - three bytes: encompasses virtually all characters in common use i.e. Chinese, Japanese, Korean (CJK)
 - four bytes: encompasses less common CJK characters, math symbols, emojis
-
 
 ## Testing
 

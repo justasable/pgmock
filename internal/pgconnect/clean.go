@@ -10,12 +10,7 @@ import (
 
 // SetupDBWithScript recreates a database from template0, and
 // runs the specified setup script
-func SetupDBWithScript(path string) error {
-	config, err := pgx.ParseConfig(connString)
-	if err != nil {
-		return err
-	}
-
+func SetupDBWithScript(config *pgx.ConnConfig, path string) error {
 	if err := dropAndRecreateDB(config); err != nil {
 		return err
 	}

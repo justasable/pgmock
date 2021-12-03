@@ -7,14 +7,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/justasable/pgconnect"
+	"github.com/justasable/pgmock/internal/pgconnect"
+
+	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSetupDBWithScript(t *testing.T) {
 	// connect to database
-	conn, err := pgconnect.Connect()
+	conn, err := pgx.Connect(context.Background(), "")
 	require.NoError(t, err)
 	defer conn.Close(context.Background())
 
@@ -23,14 +25,17 @@ func TestSetupDBWithScript(t *testing.T) {
 	testTable := "test" + strconv.Itoa(now)
 	_, err = conn.Exec(context.Background(), fmt.Sprintf(`CREATE TABLE public.%s (id integer)`, testTable))
 	require.NoError(t, err)
+	err = conn.Close(context.Background())
+	require.NoError(t, err)
 
 	// run setup db with script
-	conn.Close(context.Background())
-	err = pgconnect.SetupDBWithScript("test_setup.sql")
+	config, err := pgx.ParseConfig("")
+	require.NoError(t, err)
+	err = pgconnect.SetupDBWithScript(config, "test_schema.sql")
 	require.NoError(t, err)
 
 	// reconnect to database
-	conn, err = pgconnect.Connect()
+	conn, err = pgx.Connect(context.Background(), "")
 	require.NoError(t, err)
 	defer conn.Close(context.Background())
 

@@ -1,28 +1,17 @@
-// Package pgconnect establishes database connections
-// and provides methods to ensure a clean, base schema state
+// package pgconnect provides db connection convenience functions
+// as well as functions to restore a db to a known state from a schema file
 package pgconnect
 
 import (
-	"context"
 	"fmt"
 	"os"
-
-	"github.com/jackc/pgx/v4"
+	"os/exec"
 )
 
-var connString string
-
 func init() {
-	// ensure mandatory environment variables
-	connString = os.Getenv("PGMOCK_TEST_DB")
-	if connString == "" {
-		fmt.Println("PGMOCK_TEST_DB must be set")
+	_, err := exec.LookPath("psql")
+	if err != nil {
+		fmt.Println("psql must be installed")
 		os.Exit(1)
 	}
-
-	os.Unsetenv("PGMOCK_TEST_DB")
-}
-
-func Connect() (*pgx.Conn, error) {
-	return pgx.Connect(context.Background(), connString)
 }

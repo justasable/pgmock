@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 
-	"github.com/justasable/pgconnect"
+	"github.com/jackc/pgx/v4"
 	"github.com/justasable/pgmock/internal/generate"
+	"github.com/justasable/pgmock/internal/pgconnect"
 )
 
 func checkErr(err error) {
@@ -17,18 +20,32 @@ func checkErr(err error) {
 }
 
 func main() {
-	setupScript := os.Getenv("PGMOCK_SETUP_SCRIPT")
-	if setupScript == "" {
-		checkErr(errors.New("PGMOCK_SETUP_SCRIPT should not be empty"))
+	// get schema file
+	var fileLong, fileShort string
+	flag.StringVar(&fileLong, "file", "", "schema file to generate pgmock data against")
+	flag.StringVar(&fileShort, "f", "", "schema file to generate pgmock data against")
+	flag.Parse()
+
+	var schemaFile string
+	if fileLong != "" {
+		schemaFile = fileLong
+	} else if fileShort != "" {
+		schemaFile = fileShort
+	}
+	if schemaFile == "" {
+		checkErr(errors.New("must specify a schema file with --file or -f"))
 	}
 
 	// rebuild db with setup script specified
-	err := pgconnect.SetupDBWithScript(setupScript)
+	config, err := pgx.ParseConfig("")
+	checkErr(err)
+	err = pgconnect.SetupDBWithScript(config, schemaFile)
 	checkErr(err)
 
 	// connect and set config
-	conn, err := pgconnect.Connect()
+	conn, err := pgx.Connect(context.Background(), "")
 	checkErr(err)
+	defer conn.Close(context.Background())
 
 	// generate data
 	err = generate.GenerateData(conn)
