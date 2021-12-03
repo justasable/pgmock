@@ -26,13 +26,13 @@ CREATE TABLE public.Constraints (
     con_not_null integer NOT NULL,
     con_default integer DEFAULT 4,
     con_no_default integer,
+    con_generated integer GENERATED ALWAYS AS (7) STORED,
     PRIMARY KEY (con_pk_one, con_pk_two)
 );
 
 -- public view
-CREATE VIEW public.VIEW AS
-SELECT
-    'hello world';
+CREATE VIEW public.hello AS
+SELECT 'hello world';
 
 -- test schema
 CREATE SCHEMA test;
